@@ -7,17 +7,19 @@
 // This application uses express as its web server
 // for more info, see: http://expressjs.com
 var express = require('express');
+var path = require('path');
+var swig = require('swig');
 
 // cfenv provides access to your Cloud Foundry environment
-// for more info, see: https://www.npmjs.com/package/cfenv
+// for more info, see: n
 var cfenv = require('cfenv');
 
 // create a new express server
 var app = express();
 
 // view engine setup
-//app.engine('html', cons.swig);
-app.set('view engine', 'swig');
+app.engine('html', swig.renderFile);
+app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'views'));
 
 // serve the files out of ./public as our main files
