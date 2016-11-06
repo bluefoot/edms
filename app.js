@@ -15,11 +15,22 @@ var cfenv = require('cfenv');
 // create a new express server
 var app = express();
 
+// view engine setup
+//app.engine('html', cons.swig);
+app.set('view engine', 'swig');
+app.set('views', path.join(__dirname, 'views'));
+
 // serve the files out of ./public as our main files
 app.use(express.static(__dirname + '/public'));
 
 // get the app environment from Cloud Foundry
 var appEnv = cfenv.getAppEnv();
+
+// Routes
+var routes = require('./routes');
+app.get('/', routes.index);
+app.get('/register', routes.registration);
+
 
 // start server on the specified port and binding host
 app.listen(appEnv.port, '0.0.0.0', function() {
