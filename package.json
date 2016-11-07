@@ -2,6 +2,13 @@
 	"name": "gewtonj-edms",
 	"version": "0.0.1",
 	"private": true,
+	"author": "Gewton Teixeira",
+	"contributors": [
+      {
+        "name": "Gewton Teixeira",
+        "email": "gewtonj@br.ibm.com"
+      }
+    ],
 	"scripts": {
 		"start": "node app.js"
 	},
