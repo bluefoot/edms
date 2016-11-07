@@ -13,7 +13,7 @@ $(document).ready(function(){
           type: 'PUT',
           data: $(this).serialize(),
           success: function(data) {
-              window.location = "/";
+              window.location = "/login";
           },
           error: function(err) {
             var showstatus = err.status!=400 ? "(" + err.status + ") ":""; // If problem was bad data, don't show status code

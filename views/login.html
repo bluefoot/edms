@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block head %}
+<script type="text/javascript">
+$(document).ready(function(){
+    $('#login').submit(function(e) {
+        e.preventDefault();
+        $.ajax({
+          url: '/login',
+          type: 'POST',
+          data: $(this).serialize(),
+          success: function(data) {
+            window.location = data.redirect;
+          },
+          error: function(err) {
+            alert(err.responseText);
+          }
+        });
+      });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+   <h1 id="message">Login</h1>
+   <form id="login" method="post" action="/login">
+    <p>
+       Username:<br />
+       <input type="text" name="username" /> 
+    </p>
+    <p>
+       Password:<br />
+       <input type="password" name="password" /> 
+    </p>
+    <p>
+        <input type="submit" value="Login" />
+    </p>
+    <p>
+        New User? <a href="/employee/add">Click here</a> to create a new registration.
+    </p>
+   </form>
+{% endblock %}

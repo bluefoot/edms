@@ -7,8 +7,20 @@ mongoconnector(function(m) {
 });
 
 exports.index = function(req, res) {
-  edmsutils.displayUserData(mongo);
-  res.render('index', {title : 'Index page of EDMS'});
+  if(req.session.user) {
+    res.redirect('/employee/all');
+  } else {
+    res.render('index', {title : 'Index page of EDMS'});
+  }
+};
+
+exports.employeeAll = function(req, res) {
+  if(req.session.user) {
+    edmsutils.displayUserData(mongo);
+    res.render('employeeall', {title : 'All employees'});
+  } else {
+    res.redirect('/');
+  }
 };
 
 exports.registration = function(req, res) {
@@ -16,5 +28,10 @@ exports.registration = function(req, res) {
 };
 
 exports.login = function(req, res) {
-  res.render('login', {title : 'Loin'});
+  res.render('login', {title : 'Login'});
+};
+
+exports.logout = function(req, res) {
+  req.session.destroy();
+  res.redirect('/');
 };

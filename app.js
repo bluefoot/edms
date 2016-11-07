@@ -12,6 +12,7 @@ var swig = require('swig');
 var bodyParser = require('body-parser');
 var validator = require('validator');
 var edmsutils = require('./edmsutils.js');
+var session = require('express-session')
 var mongoconnector = require('./mongodb-startup.js');
 var mongo;
 mongoconnector(function(m){
@@ -25,21 +26,21 @@ var cfenv = require('cfenv');
 // create a new express server
 var app = express();
 
-
-/** bodyParser.urlencoded(options)
- * Parses the text as URL encoded data (which is how browsers tend to send form data from regular forms set to POST)
- * and exposes the resulting object (containing the keys and values) on req.body
- */
+// activating parser for http forms, using it as JSON in req.body 
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-
-/**bodyParser.json(options)
- * Parses the text as JSON and exposes the resulting object on req.body.
- */
 app.use(bodyParser.json());
 
-// view engine setup
+// session setup. more info at https://expressjs.com/en/resources/middleware/session.html
+app.set('trust proxy', 1) // trust first proxy
+app.use(session({
+  secret: 'b5RU5boaXQjbQ22iyUUF',
+  resave: false,
+  saveUninitialized: true
+}))
+
+// view engine setup (swig: https://github.com/paularmstrong/swig)
 app.engine('html', swig.renderFile);
 app.set('view engine', 'html');
 app.set('views', path.join(__dirname, 'views'));
@@ -51,12 +52,31 @@ app.use(express.static(__dirname + '/public'));
 var appEnv = cfenv.getAppEnv();
 
 // Routes
+// FIXME move all this logic to routes.js or /routes/something.js
 var routes = require('./routes');
 app.get('/', routes.index);
 app.get('/wipe', function(req, res){
   edmsutils.resetData(mongo);
   res.redirect('/');
 });
+app.get('*', function(req, res, next) {
+  res.locals.user = req.session.user || null;
+  next();
+});
+app.get('/login', routes.login);
+app.get('/logout', routes.logout);
+app.post('/login', function(req, res) {
+  req.body.password = edmsutils.hashpwd(req.body.password);
+  mongo.collection('edms.users').findOne({'username':req.body.username, 'password':req.body.password}, function(err, item) {
+    if(item) {
+      req.session.user = item;
+      res.send({'redirect':'/employee/all'});
+    } else {
+      res.status(400).send('Match not found');
+    }
+  });
+});
+app.get('/employee/all', routes.employeeAll);
 app.get('/employee/add', routes.registration);
 app.put('/employee', function(req, res) {
   req.body.employee.password = edmsutils.hashpwd(req.body.employee.password);

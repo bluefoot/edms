@@ -12,6 +12,13 @@
   </head>
 
   <body>
+    <div id="useroptions">
+    {% if user %}
+    Hello, {{user.username}} | <a href="/logout">logout</a>
+    {% else %}
+    Not logged in
+    {% endif %}
+    </div>
     <table>
       <tr>
         <td style= "width:30%;">
