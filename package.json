@@ -9,7 +9,7 @@
 		"express": "4.13.x",
 		"cfenv": "1.0.x",
 		"swig": "^1.4.1",
-		"mongodb": "2.2.x"
+		"mongodb": "^2.2.9"
 	},
 	"repository": {},
 	"engines": {
