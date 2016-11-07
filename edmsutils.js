@@ -1,3 +1,5 @@
+var crypto = require('crypto');
+const secret = 'dsahf827yhGuIHfduYGSfj2g8G';
 var exports = module.exports = {};
 
 exports.die = function(msg) {
@@ -32,4 +34,8 @@ exports.displayUserData = function(db) {
 exports.inspectobject = function(obj) {
     const util = require('util');
     console.log(util.inspect(object, {showHidden: false, depth: null}));
+}
+
+exports.hashpwd = function(pwd) {
+    return crypto.createHmac('sha256', secret).update(pwd).digest('hex');
 }

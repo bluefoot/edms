@@ -1,2 +1,60 @@
-<h1>{{title}}</h1>
-<p>This is the {{title}} page</p>
+{% extends 'base.html' %}
+{% block head %}
+<script type="text/javascript">
+$(document).ready(function(){
+    $('#add-employee').submit(function(e) {
+        e.preventDefault();
+        if($('#pwd').val()!=$('#pwd-confirm').val()) {
+            alert("passwords don't match");
+            return;
+        }
+        $.ajax({
+          url: '/employee',
+          type: 'PUT',
+          data: $(this).serialize(),
+          success: function(data) {
+              window.location = "/";
+          },
+          error: function(err) {
+            var showstatus = err.status!=400 ? "(" + err.status + ") ":""; // If problem was bad data, don't show status code
+            alert("Could not create new registration: " + showstatus + err.responseText);
+          }
+        });
+      });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+   <h1 id="message">New Registration</h1>
+   <p class='description'>Please complete your new registration by filling up the following fields</p> 
+   <form id="add-employee" method="put" action="/employee">
+    <p>
+       Username:<br />
+       <input type="text" name="employee[username]" /> 
+    </p>
+    <p>
+       First Name:<br />
+       <input type="text" name="employee[firstname]" /> 
+    </p>
+    <p>
+       Last Name:<br />
+       <input type="text" name="employee[lastname]" /> 
+    </p>
+    <p>
+       Email:<br />
+       <input type="email" name="employee[email]" /> 
+    </p>
+    <p>
+       Password:<br />
+       <input id="pwd" type="password" name="employee[password]" /> 
+    </p>
+    <p>
+       Password confirmation:<br />
+       <input id="pwd-confirm" type="password" name="password" /> 
+    </p>
+    <p>
+        <input type="submit" value="New Registration" />
+    </p>
+   </form>
+{% endblock %}

@@ -16,7 +16,9 @@
 		"express": "4.13.x",
 		"cfenv": "1.0.x",
 		"swig": "^1.4.1",
-		"mongodb": "^2.2.9"
+		"mongodb": "^2.2.9",
+		"body-parser": "^1.15.2",
+		"validator": "^6.1.0"
 	},
 	"repository": {},
 	"engines": {
