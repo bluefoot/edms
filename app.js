@@ -9,6 +9,7 @@
 var express = require('express');
 var path = require('path');
 var swig = require('swig');
+var mongo = require('./mongodb-startup.js');
 
 // cfenv provides access to your Cloud Foundry environment
 // for more info, see: n
@@ -31,11 +32,11 @@ var appEnv = cfenv.getAppEnv();
 // Routes
 var routes = require('./routes');
 app.get('/', routes.index);
-app.get('/register', routes.registration);
-
+app.get('/employee/add', routes.registration);
 
 // start server on the specified port and binding host
 app.listen(appEnv.port, '0.0.0.0', function() {
   // print a message when the server starts listening
   console.log("server starting on " + appEnv.url);
 });
+

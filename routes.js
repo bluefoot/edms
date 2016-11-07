@@ -7,3 +7,7 @@ exports.registration = function(req, res){
   res.render('registration', { title: 'New registration page' });
 };
 
+exports.login = function(req, res){
+  res.render('login', { title: 'Loin' });
+};
+
