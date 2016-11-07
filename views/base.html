@@ -19,12 +19,13 @@
     Not logged in
     {% endif %}
     </div>
-    <table>
+    <table class="main">
       <tr>
         <td style= "width:30%;">
           <img class = "newappIcon" src="/images/newapp-icon.png">
         </td>
         <td>
+          <h1 id="message">{{title | 'hi'}}</h1>
           {% block content %}{% endblock %}
         </td>
       </tr>

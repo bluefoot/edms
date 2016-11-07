@@ -52,19 +52,18 @@ h1 {
 }
 
 
-table {
+.main {
 	table-layout: fixed;
-	width: 800px;
 	margin: 0 auto;
 	word-wrap: break-word;
 	padding-top:10%;
 }
 
-th {
+.main th {
 	border-bottom: 1px solid #000;
 }
 
-th, td {
+.main th, .main td {
 	text-align: left;
 	padding: 2px 20px;
 }
@@ -84,5 +83,17 @@ pre {
 	text-align:right;
 	padding-top:10px;
 	padding-right:10px;
+}
+
+.left {
+	float:left;
+}
+
+.right {
+	float:right;
+}
+
+.clear {
+	clear:both;
 }
 

@@ -8,16 +8,33 @@ mongoconnector(function(m) {
 
 exports.index = function(req, res) {
   if(req.session.user) {
-    res.redirect('/employee/all');
+    res.redirect('/dashboard');
   } else {
     res.render('index', {title : 'Index page of EDMS'});
   }
 };
 
-exports.employeeAll = function(req, res) {
+exports.dashboard = function(req, res) {
   if(req.session.user) {
-    edmsutils.displayUserData(mongo);
-    res.render('employeeall', {title : 'All employees'});
+    var options = {};
+    if(req.query.q) {
+      res.locals.q = req.query.q;
+      options = {'$or':[
+                        {'username': {$regex: '.*' + req.query.q + '.*', $options:'i'}},
+                        {'firstname': {$regex: '.*' + req.query.q + '.*', $options:'i'}},
+                        {'lastname': {$regex: '.*' + req.query.q + '.*', $options:'i'}},
+                        {'email': {$regex: '.*' + req.query.q + '.*', $options:'i'}}
+                        ]
+                };
+    }
+    mongo.collection('edms.users').find(options).toArray(
+        function(err, items) {
+          if(!err) {
+            res.render('dashboard', {title : 'Dashboard page', 'employees':items});
+          } else {
+            response.status(500).send("Can't fetch employees: " + err);
+          }
+    });
   } else {
     res.redirect('/');
   }

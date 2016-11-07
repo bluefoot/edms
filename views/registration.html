@@ -26,11 +26,10 @@ $(document).ready(function(){
 {% endblock %}
 
 {% block content %}
-   <h1 id="message">New Registration</h1>
-   <p class='description'>Please complete your new registration by filling up the following fields</p> 
+   <p class='description'>Please complete your new registration by filling up all of the following fields</p> 
    <form id="add-employee" method="put" action="/employee">
     <p>
-       Username:<br />
+       Username (must be alphanumeric):<br />
        <input type="text" name="employee[username]" /> 
     </p>
     <p>

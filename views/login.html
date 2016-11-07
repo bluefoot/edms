@@ -21,7 +21,6 @@ $(document).ready(function(){
 {% endblock %}
 
 {% block content %}
-   <h1 id="message">Login</h1>
    <form id="login" method="post" action="/login">
     <p>
        Username:<br />
@@ -35,7 +34,7 @@ $(document).ready(function(){
         <input type="submit" value="Login" />
     </p>
     <p>
-        New User? <a href="/employee/add">Click here</a> to create a new registration.
+        New User? <a href="/register">Click here</a> to create a new registration.
     </p>
    </form>
 {% endblock %}

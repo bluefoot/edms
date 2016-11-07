@@ -1,11 +1,9 @@
 /*eslint-env node*/
 
 //------------------------------------------------------------------------------
-// node.js starter application for Bluemix
+// gewtonj-edms (Employee Data Management System)
 //------------------------------------------------------------------------------
 
-// This application uses express as its web server
-// for more info, see: http://expressjs.com
 var express = require('express');
 var path = require('path');
 var swig = require('swig');
@@ -20,7 +18,6 @@ mongoconnector(function(m){
 });
 
 // cfenv provides access to your Cloud Foundry environment
-// for more info, see: n
 var cfenv = require('cfenv');
 
 // create a new express server
@@ -53,6 +50,22 @@ var appEnv = cfenv.getAppEnv();
 
 // Routes
 // FIXME move all this logic to routes.js or /routes/something.js
+// REST verbs to manipulate employee resource:
+// GET    /employee/:username    view employee data
+// PUT    /employee              insert employee (aka "new registration")
+// DELETE /employee              remove employee
+// POST   /employee              update employee (aka "edit profile details")
+//
+// Other routes:
+// GET    /                             view start page
+// GET    /login                        view login page
+// POST   /login                        login user
+// GET    /logout                       logout user, redirect to start page
+// GET    /register                     new registration
+// GET    /profile                      view profile details
+// GET    /profile/edit/:username       form to edit profile details
+// GET    /profile/editpwd/:username    form to edit employee's password
+// GET    /dashboard                    view dashboard
 var routes = require('./routes');
 app.get('/', routes.index);
 app.get('/wipe', function(req, res){
@@ -70,14 +83,14 @@ app.post('/login', function(req, res) {
   mongo.collection('edms.users').findOne({'username':req.body.username, 'password':req.body.password}, function(err, item) {
     if(item) {
       req.session.user = item;
-      res.send({'redirect':'/employee/all'});
+      res.send({'redirect':'/dashboard'});
     } else {
       res.status(400).send('Match not found');
     }
   });
 });
-app.get('/employee/all', routes.employeeAll);
-app.get('/employee/add', routes.registration);
+app.get('/dashboard', routes.dashboard);
+app.get('/register', routes.registration);
 app.put('/employee', function(req, res) {
   req.body.employee.password = edmsutils.hashpwd(req.body.employee.password);
   if(validateEmployee(req.body.employee)) {
@@ -100,7 +113,21 @@ app.put('/employee', function(req, res) {
       }
     });
   } else {
-    response.status(400).send('Invalid data received. Please check if all fields were filled up right.');
+    res.status(400).send('Invalid data received. Please check if all fields were filled up right.');
+  }
+});
+app.delete('/employee', function(req, res){
+  if(req.body.username=='admin') {
+    res.status(400).send('Cannot delete admin');
+  } else {
+    mongo.collection('edms.users').remove({'username' : req.body.username}, {w:1}, function(err, result){
+      if(err) {
+        res.status(500).send('Error deleting user ' + req.body.username + ': ' + err);
+      } else {
+        console.log('employee deleted: ' + req.body.username);
+        res.send(result);
+      }
+    });
   }
 });
 
@@ -110,7 +137,8 @@ function validateEmployee(employee) {
       validator.isEmpty(employee.firstname) ||
       validator.isEmpty(employee.lastname) ||
       !validator.isEmail(employee.email) ||
-      validator.isEmpty(employee.password)) {
+      validator.isEmpty(employee.password) ||
+      !validator.isAlphanumeric(employee.username)) {
     return false;
   }
   return true;

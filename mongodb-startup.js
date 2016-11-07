@@ -19,7 +19,7 @@ if (vcap) {
   edmsutils.die("Cannot get VCAP_SERVICES env variable");
 }
 // Connect to mongodb and create bootstrap data
-var adminUser = {'username':'admin', 'password':'9dd967b40d2e9db74629f0d4e8f3b2d8f0b98c03e4d152eb440ccff21374f02a'};
+var adminUser = {'username':'admin', 'password':'9dd967b40d2e9db74629f0d4e8f3b2d8f0b98c03e4d152eb440ccff21374f02a', 'firstname' : 'Gewton', 'lastname' : 'Teixeira', 'email' : 'gewtonj@br.ibm.com'};
 mongo.connect(mongo_uri, {
     mongos: {
       ssl: true,

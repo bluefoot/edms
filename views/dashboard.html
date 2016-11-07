@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block head %}
+<script type="text/javascript">
+$(document).ready(function(){
+    $('a.deleteemployee').each(function() {
+      $(this).click(function(e){
+        e.preventDefault();
+        var username = $(this).attr('data-employee-username');
+        $.ajax({
+          url: '/employee',
+          type: 'DELETE',
+          data: 'username=' + username,
+          success: function(data) {
+            $('#line-' + username).fadeOut('slow', function() {
+              $('a[data-employee-username=' + username + ']').remove();
+            });
+          },
+          error: function(err) {
+            alert(err.responseText);
+          }
+        });
+      });
+   });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="left">
+    <form id="search-form" method="get" action="">
+        Search: <input type="text" name="q" value="{{ q }}" /> <input type="submit" value="ok" />
+    </form>
+</div>
+<div class="right">
+  {% if user.username=='admin' %}
+  <a href="/audit">view audit log</a>
+  {% endif %}
+</div>
+<div class="clear"></div>
+<div id="employees-dashboard-list">
+<table>
+    <thead>
+        <tr>
+            <td>Username</td>
+            <td>First Name</td>
+            <td>Last Name</td>
+            <td>Email</td>
+            <td>Options</td>
+        </tr>
+    </thead>   
+    <tbody>
+        {% for employee in employees %}
+        <tr id="line-{{ employee.username }}">
+            <td>{{ employee.username }}</td>
+            <td>{{ employee.firstname }}</td>
+            <td>{{ employee.lastname }}</td>
+            <td>{{ employee.email }}</td>
+            <td><a href="/profile/edit/{{ employee.username }}">edit</a> | <a href="javascript:;" class="deleteemployee" data-employee-username="{{ employee.username }}">delete</a></td>
+        <tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+{% endblock %}
