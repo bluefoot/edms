@@ -5,6 +5,7 @@ var mongo;
 mongoconnector(function(m) {
   mongo = m;
 });
+const LIMIT = 5;
 
 exports.index = function(req, res) {
   if(req.session.user) {
@@ -16,25 +17,36 @@ exports.index = function(req, res) {
 
 exports.dashboard = function(req, res) {
   if(req.session.user) {
-    var options = {};
-    if(req.query.q) {
-      res.locals.q = req.query.q;
-      options = {'$or':[
-                        {'username': {$regex: '.*' + req.query.q + '.*', $options:'i'}},
-                        {'firstname': {$regex: '.*' + req.query.q + '.*', $options:'i'}},
-                        {'lastname': {$regex: '.*' + req.query.q + '.*', $options:'i'}},
-                        {'email': {$regex: '.*' + req.query.q + '.*', $options:'i'}}
-                        ]
-                };
+    if(req.query.page && req.query.page < 1) {
+      res.redirect('/dashboard');
+    } else {
+      var selector = {};
+      if(req.query.q) {
+        selector = {'$or':[
+                          {'username': {$regex: '.*' + req.query.q + '.*', $options:'i'}},
+                          {'firstname': {$regex: '.*' + req.query.q + '.*', $options:'i'}},
+                          {'lastname': {$regex: '.*' + req.query.q + '.*', $options:'i'}},
+                          {'email': {$regex: '.*' + req.query.q + '.*', $options:'i'}}
+                         ]
+                  };
+      }
+      var skip = req.query.page ? (req.query.page - 1) * LIMIT : 0;
+      var options = {'limit':LIMIT, 'skip':skip};
+      mongo.collection('edms.users').find(selector, options).toArray(
+          function(err, items) {
+            if(!err) {
+              res.render('dashboard', {
+                title : 'Dashboard page',
+                'employees' : items,
+                'page' : req.query.page ? parseInt(req.query.page) : 1,
+                'hidenext' : items.length < LIMIT ? true : false,
+                'q' : req.query.q
+              });
+            } else {
+              res.status(500).send("Can't fetch employees: " + err);
+            }
+      });
     }
-    mongo.collection('edms.users').find(options).toArray(
-        function(err, items) {
-          if(!err) {
-            res.render('dashboard', {title : 'Dashboard page', 'employees':items});
-          } else {
-            response.status(500).send("Can't fetch employees: " + err);
-          }
-    });
   } else {
     res.redirect('/');
   }

@@ -97,3 +97,10 @@ pre {
 	clear:both;
 }
 
+.paginator {
+	font-weight:bold;
+	text-align:center;
+}
+.paginator a {
+	font-size:1.5em;
+}
