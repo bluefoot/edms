@@ -106,3 +106,29 @@ exports.logout = function(req, res) {
   req.session.destroy();
   res.redirect('/');
 };
+
+exports.audit = function(req, res) {
+  if(req.session.user && req.session.user.username=='admin') {
+    if(req.query.page && req.query.page < 1) {
+      res.redirect('/audit');
+    } else {
+      var skip = req.query.page ? (req.query.page - 1) * LIMIT : 0;
+      var options = {'limit':LIMIT, 'skip':skip, 'sort':[['timestamp', 'descending']]};
+      mongo.collection('edms.audits').find({}, options).toArray(
+          function(err, items) {
+            if(!err) {
+              res.render('audit', {
+                title : 'Employee Audit Trails',
+                'audits' : items,
+                'page' : req.query.page ? parseInt(req.query.page) : 1,
+                'hidenext' : items.length < LIMIT ? true : false
+              });
+            } else {
+              res.status(500).send("Can't fetch audit records: " + err);
+            }
+      });
+    }
+  } else {
+    res.redirect('/');
+  }
+};

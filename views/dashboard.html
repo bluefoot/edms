@@ -38,7 +38,7 @@ $(document).ready(function(){
 </div>
 <div class="clear"></div>
 <div id="employees-dashboard-list">
-{% if employees.length > 0 %}
+{% if employees.length > 0  || page > 1 %}
   <table>
       <thead>
           <tr>

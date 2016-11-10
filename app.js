@@ -88,11 +88,11 @@ app.post('/login', function(req, res) {
   mongo.collection('edms.users').findOne({'username':req.body.username, 'password':req.body.password}, function(err, item) {
     if(item) {
       req.session.user = item;
-      mongo.collection('edms.audits').insertOne({'username' : item.username, 'timestamp' : new Date().getTime()}, function(err, result){
+      mongo.collection('edms.audits').insertOne({'username' : item.username, 'timestamp' : new Date().getTime(), 'comments': 'login'}, function(err, result){
         if (err) {
           console.log('WARNING: coult not save audit log: ' + err);
-          res.send({'redirect':'/dashboard'});
         }
+        res.send({'redirect':'/dashboard'});
       });
     } else {
       res.status(400).send('Match not found');
@@ -238,6 +238,7 @@ app.delete('/employee', function(req, res){
 app.get('/profile/edit/:username?', routes.showprofileedit);
 app.get('/profile/editpwd', routes.showprofileeditpwd);
 app.get('/profile', routes.profile);
+app.get('/audit', routes.audit);
 
 function validateEmployee(employee, checkOnlyExistingFields) {
   if(checkOnlyExistingFields) {

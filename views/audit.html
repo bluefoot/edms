@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<div id="audit-list">
+{% if audits.length > 0 || page > 1 %}
+  <table>
+      <thead>
+          <tr>
+              <td>Username</td>
+              <td>Timestamp (UTC)</td>
+              <td>Comments</td>
+          </tr>
+      </thead>   
+      <tbody>
+          {% for audit in audits %}
+          <tr>
+              <td>{{ audit.username }}</td>
+              <td><span data-timestamp="{{ audit.timestamp }}">{{ audit.timestamp|date('Y-m-d H:i:s') }}</span></td>
+              <td>{{ audit.comments }}</td>
+          <tr>
+          {% endfor %}
+      </tbody>
+  </table>
+  <div class="paginator">
+      {% if page>1 %}<a href="?page={{ page-1 }}" title="previous page">&#8656;</a>{% endif %}
+      {{ page }}
+      {% if !hidenext %}<a href="?page={{ page+1 }}" title="next page">&#8658;</a>{% endif %}
+  </div>
+{% else %}
+    No data was found.
+{% endif %}
+</div>
+<a href="/dashboard">back to dashboard</a>
+
+{% endblock %}
