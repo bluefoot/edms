@@ -11,6 +11,8 @@ var bodyParser = require('body-parser');
 var validator = require('validator');
 var edmsutils = require('./edmsutils.js');
 var session = require('express-session');
+var cookieParser = require('cookie-parser');
+var flash = require('express-flash');
 var mongoconnector = require('./mongodb-startup.js');
 var mongo;
 mongoconnector(function(m){
@@ -35,7 +37,11 @@ app.use(session({
   secret: 'b5RU5boaXQjbQ22iyUUF',
   resave: false,
   saveUninitialized: true
-}))
+}));
+
+//flash config. kinda like JSF/spring MVC https://github.com/RGBboy/express-flash
+app.use(cookieParser('b5RU5boaXQjbQ22iyUUF'));
+app.use(flash());
 
 // view engine setup (swig: https://github.com/paularmstrong/swig)
 app.engine('html', swig.renderFile);
@@ -184,6 +190,7 @@ app.post('/employee', function(req, res) {
                 {'$set': updatefields}, 
                 function(err, result) {
                   if(!err) {
+                    req.flash('info', 'User was updated successfully');
                     if(refreshUserInSession) {
                       for(var key in updatefields) {
                         req.session.user[key]=updatefields[key];
