@@ -49,26 +49,9 @@ exports.showprofileedit = function(req, res) {
   }
 };
 
-exports.profileedit = function(req, res) {
+exports.showprofileeditpwd = function(req, res) {
   if(req.session.user) {
-    var profileToView = req.session.user;
-    if(req.query.username) {
-      mongo.collection('edms.users').findOne({'username':req.query.username}).toArray(
-          function(err, item) {
-            if(!err) {
-              res.render('profile', {
-                title : 'View ' + item.username + '\'s profile',
-                'profileToView' : items,
-                'page' : req.query.page ? parseInt(req.query.page) : 1,
-                'hidenext' : items.length < LIMIT ? true : false,
-                'q' : req.query.q
-              });
-            } else {
-              res.status(500).send("Can't fetch profile: " + err);
-            }
-      });
-    }
-    res.render('profile', {title : 'Edit profile'});
+    res.render('profile_edit_pwd', {title : 'Change my password'});
   } else {
     res.redirect('/');
   }

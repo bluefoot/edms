@@ -1,6 +1,7 @@
 var crypto = require('crypto');
 const secret = 'dsahf827yhGuIHfduYGSfj2g8G';
 var exports = module.exports = {};
+var validator = require('validator');
 
 exports.die = function(msg) {
     console.log(msg);
@@ -37,5 +38,9 @@ exports.inspectobject = function(obj) {
 }
 
 exports.hashpwd = function(pwd) {
+  if(validator.isEmpty(pwd)) {
+    return "";
+  } else {
     return crypto.createHmac('sha256', secret).update(pwd).digest('hex');
+  }
 }

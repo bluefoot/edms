@@ -73,6 +73,8 @@ mongo.connect(mongo_uri, {
         }
       });
     });
+    mongodb.createCollection('edms.audits', function(err, collection) {
+    });
 });
 
 // Using a callback for exports since the mongodb object is populated asynchronously

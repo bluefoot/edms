@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block head %}
+<script type="text/javascript">
+$(document).ready(function(){
+    $('#editpwd').submit(function(e) {
+        if($('#pwd').val()!=$('#pwd-confirm').val()) {
+            e.preventDefault();
+            alert("new passwords don't match");
+            return;
+        }
+      });
+});
+</script>
+{% endblock %}
+
+{% block content %}
+   <form id="editpwd" method="post" action="/employee">
+    <p>
+       Old password:<br />
+       <input id="oldpwd" type="password" name="oldpassword" />
+    </p>
+    <p>
+       New password (must not be blank):<br />
+       <input id="pwd" type="password" name="employee[password]" /> 
+    </p>
+    <p>
+       New password confirmation:<br />
+       <input id="pwd-confirm" type="password" name="password" /> 
+    </p>
+    <p>
+        <input type="submit" value="Change password" />
+        | <a href="/dashboard">back to dashboard</a>
+        <input type="hidden" name="employee[_id]" value="{% if user._id.toHexString %}{{ user._id.toHexString() }}{% else %}{{ user._id }}{% endif %}" />
+    </p>
+   </form>
+{% endblock %}
