@@ -15,6 +15,65 @@ exports.index = function(req, res) {
   }
 };
 
+exports.profile = function(req, res) {
+  if(req.session.user) {
+    res.render('profile', {title : 'View profile', 'theuser' : req.session.user});
+  } else {
+    res.redirect('/');
+  }
+};
+
+exports.showprofileedit = function(req, res) {
+  if(req.session.user) {
+    renderpage = function(theuser){
+      res.render('profile', {title : 'Edit profile', 'edit' : true, 'theuser' : theuser});
+    };
+    // If an username param is defined, load it from database and send to edit
+    // If not, no need to hit database, just send the user in session
+    // Need a callback because loading from db is async
+    if(req.params.username) {
+      mongo.collection('edms.users').findOne({'username':req.params.username}, function(err, item) {
+        if(item) {
+          renderpage(item);
+        } else if (err) {
+          res.status(500).send('Error finding user: ' + err);
+        } else {
+          res.status(400).send('Username not found: ' + req.params.username);
+        }
+      });
+    } else {
+      renderpage(req.session.user);
+    }
+  } else {
+    res.redirect('/');
+  }
+};
+
+exports.profileedit = function(req, res) {
+  if(req.session.user) {
+    var profileToView = req.session.user;
+    if(req.query.username) {
+      mongo.collection('edms.users').findOne({'username':req.query.username}).toArray(
+          function(err, item) {
+            if(!err) {
+              res.render('profile', {
+                title : 'View ' + item.username + '\'s profile',
+                'profileToView' : items,
+                'page' : req.query.page ? parseInt(req.query.page) : 1,
+                'hidenext' : items.length < LIMIT ? true : false,
+                'q' : req.query.q
+              });
+            } else {
+              res.status(500).send("Can't fetch profile: " + err);
+            }
+      });
+    }
+    res.render('profile', {title : 'Edit profile'});
+  } else {
+    res.redirect('/');
+  }
+};
+
 exports.dashboard = function(req, res) {
   if(req.session.user) {
     if(req.query.page && req.query.page < 1) {

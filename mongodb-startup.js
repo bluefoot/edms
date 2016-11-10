@@ -56,6 +56,7 @@ mongo.connect(mongo_uri, {
         callback(mongodb);
       }
     }
+    console.log('Mongodb loaded');
     // Attempt to create users collection if doesn't exist
     mongodb.createCollection('edms.users', function(err, collection) {
       // Insert bootstrap data if admin user not present

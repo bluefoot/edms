@@ -14,7 +14,7 @@
   <body>
     <div id="useroptions">
     {% if user %}
-    Hello, {{user.username}} | <a href="/logout">logout</a>
+    Hello, {{user.username}} | <a href="/profile">view profile</a> | <a href="/profile/edit">edit profile</a> | <a href="/profile/editpwd">change password</a> | <a href="/logout">logout</a>
     {% else %}
     Not logged in
     {% endif %}

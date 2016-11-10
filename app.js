@@ -10,7 +10,7 @@ var swig = require('swig');
 var bodyParser = require('body-parser');
 var validator = require('validator');
 var edmsutils = require('./edmsutils.js');
-var session = require('express-session')
+var session = require('express-session');
 var mongoconnector = require('./mongodb-startup.js');
 var mongo;
 mongoconnector(function(m){
@@ -62,9 +62,11 @@ var appEnv = cfenv.getAppEnv();
 // POST   /login                        login user
 // GET    /logout                       logout user, redirect to start page
 // GET    /register                     new registration
-// GET    /profile                      view profile details
-// GET    /profile/edit/:username       form to edit profile details
-// GET    /profile/editpwd/:username    form to edit employee's password
+// GET    /profile                      view my profile details
+// GET    /profile/edit                 form to edit logged user's profile details
+// GET    /profile/edit/:username       form to edit some username profile details
+// GET    /profile/editpwd              form to edit logged user's password
+// GET    /profile/editpwd/:username    form to edit some username password
 // GET    /dashboard                    view dashboard
 var routes = require('./routes');
 app.get('/', routes.index);
@@ -73,6 +75,9 @@ app.get('/wipe', function(req, res){
   res.redirect('/');
 });
 app.get('*', function(req, res, next) {
+  if(!mongo) {
+    res.status(500).send('Application still loading, try again');
+  }
   res.locals.user = req.session.user || null;
   next();
 });
@@ -116,6 +121,61 @@ app.put('/employee', function(req, res) {
     res.status(400).send('Invalid data received. Please check if all fields were filled up right.');
   }
 });
+app.post('/employee', function(req, res) {
+  if(req.session.user) {
+    // Need to query to get which profile the user wants to update, so we 
+    // can enforce some rules.
+    // Rules are: can't change password of others, and also can't change admin
+    // profile (unless you are admin)
+    var mongodb = require('mongodb');
+    var refreshUserInSession = false;
+    mongo.collection('edms.users').findOne({'_id':require('mongodb').ObjectID.createFromHexString(req.body.employee._id)}, function(err, employeeToUpdate) {
+      if(employeeToUpdate) {
+        if(employeeToUpdate.username=='admin' && req.session.user.username!='admin') {
+          res.status(400).send('You can\'t change this user');
+          return;
+        }
+        // if user is editing itself, needs to update object in session after
+        refreshUserInSession = employeeToUpdate.username==req.session.user.username;
+        // _id and username can't be modified
+        delete req.body.employee._id;
+        delete req.body.employee.username;
+        var updatefields = {};
+        for(var key in req.body.employee) {
+          if(key=='password') {
+            if(employeeToUpdate.username != req.session.user.username) {
+              res.status(400).send('Can\'t change password of another user');
+              return;
+            }
+            req.body.employee.password = edmsutils.hashpwd(req.body.employee.password);
+          }
+          updatefields[key] = req.body.employee[key];
+        }
+        mongo.collection('edms.users').update(
+            {'username' : employeeToUpdate.username}, 
+            {'$set': updatefields}, 
+            function(err, result) {
+              if(!err) {
+                if(refreshUserInSession) {
+                  for(var key in updatefields) {
+                    req.session.user[key]=updatefields[key];
+                  }
+                  res.redirect('/profile');
+                } else {
+                  res.redirect('/dashboard');
+                }
+              } else {
+                res.status(500).send('Could not edit profile: ' + err);
+              }
+            });
+      } else {
+        res.status(500).send('Employee not found: ' + err);
+      }
+    });
+  } else {
+    res.status(400).send('You must be logged in to do that');
+  }
+});
 app.delete('/employee', function(req, res){
   if(req.body.username=='admin') {
     res.status(400).send('Cannot delete admin');
@@ -130,6 +190,11 @@ app.delete('/employee', function(req, res){
     });
   }
 });
+app.get('/profile/edit/:username?', routes.showprofileedit);
+//app.get('/profile/edit', routes.showprofileedit);
+//app.get('/profile/edit/:username', routes.showprofileedit);
+app.get('/profile', routes.profile);
+//app.get('/profile/edit/:username', routes.profile);
 
 function validateEmployee(employee) {
   if(Object.keys(employee).length!=5 ||

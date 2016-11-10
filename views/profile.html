@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% if !edit %}
+{% block head %}
+<script type="text/javascript">
+$(document).ready(function(){
+  $('#editbutton').click(function(e){
+    e.preventDefault();
+    $('#profile input').each(function(){
+      $(this).removeAttr('disabled');
+    });
+    $('#editbutton').hide();
+    $('#submitbutton').show();
+  });
+});
+</script>
+{% endblock %}
+{% endif %}
+
+{% block content %}
+   <form id="profile" method="post" action="/employee">
+    <p>
+       Username: {{ theuser.username }}
+       <input type="hidden" name="employee[_id]" value="{% if theuser._id.toHexString %}{{ theuser._id.toHexString() }}{% else %}{{ theuser._id }}{% endif %}" />
+    </p>
+    <p>
+       First Name:<br />
+       <input type="text" name="employee[firstname]" value="{{ theuser.firstname}}" {% if !edit %}disabled="disabled"{% endif %} /> 
+    </p>
+    <p>
+       Last Name:<br />
+       <input type="text" name="employee[lastname]" value="{{ theuser.lastname}}" {% if !edit %}disabled="disabled"{% endif %} /> 
+    </p>
+    <p>
+       Email:<br />
+       <input type="email" name="employee[email]" value="{{ theuser.email}}" {% if !edit %}disabled="disabled"{% endif %} />
+    </p>
+    <p>
+        {% if !edit %}<a href="/profile/edit" id="editbutton">Edit</a>{% endif %}
+        <input type="submit" value="Save changes" id="submitbutton" {% if !edit %}style="display:none"{% endif %} />
+        | <a href="/dashboard">back to dashboard</a>
+    </p>
+   </form>
+{% endblock %}
