@@ -1,15 +1,27 @@
 {% extends 'base.html' %}
 
+{% block head %}
+<script type="text/javascript">
+$(document).ready(function(){
+  $('#upload').submit(function(e){
+    $('#submitbutton').before('<img src="/images/ajax-loader.gif" />');
+    $('#submitbutton').attr('disabled', 'disabled');
+  });
+});
+</script>
+{% endblock %}
+
 {% block content %}
    <p>Use this page to upload a Comma Separated Values (CSV) file containing users to be inserted.<br />
-   CSV file must have 4 columns, in this order: username, first name, last name, email, password. </p>
+   CSV file must have 5 columns, in any order: username, first name, last name, email, password.<br />
+   First row must be the header which contains column names. </p>
    <form id="upload" method="post" action="/upload" encType="multipart/form-data">
     <p>
        Upload file: <br />
        <input type="file" id="input" name="input" accept=".csv,text/csv" />
     </p>
     <p>
-        <input type="submit" value="Upload" id="upload" />
+        <input id="submitbutton" type="submit" value="Upload"/>
         | <a href="/dashboard">back to dashboard</a>
     </p>
    </form>

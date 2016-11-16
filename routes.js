@@ -1,6 +1,7 @@
 // Define routes
 var edmsutils = require('./edmsutils.js');
 var db = require('./database.js');
+var fs = require('fs');
 
 exports.userGet = function(req, res) {
   if(req.session.user) {
@@ -23,7 +24,7 @@ exports.userGet = function(req, res) {
 };
 
 exports.userInsert = function(req, res) {
-  db.userInsert(req.body.employee, function(err, item){
+  db.userInsert(req.body.employee, req.session.user, function(err, item){
     if (err) {
       res.status(500).send('Could not create registration: ' + err);
     } else {
@@ -208,7 +209,7 @@ exports.audit = function(req, res) {
     }
   } else {
     // don't even let normal users know about it
-    res.status(404);
+    res.status(404).send("Page not found");
   }
 };
 
@@ -226,32 +227,31 @@ exports.doUpload = function(req, res) {
       res.status(400).send('No files were uploaded.');
       return;
     }
-    processline = function(line) {
-      console.log("csvline: " + line);
-    }
     var csv = req.files.input;
     var filename = 'edmsupload-' + require("randomstring").generate() + '.csv';
-    var count = 0;
     csv.mv(filename, function(err) {
       if (err) {
         res.status(500).send("Could not upload file: " + err);
       } else {
-        console.log('file uploaded');
-        fs.createReadStream(filename)
-        .pipe(parse({delimiter: ','}))
-        .on('data', function(line) {
-          console.log("csvline: " + line);
-          count++;
-        })
-        .on('end',function() {
-          console.log("DONE");
-          fs.unlink(filename, function(err2){
-            if(err) {console.log("cant remove: " + err2)};
-            console.log("removing done");
-            req.flash('info', 'Successfully imported ' + count + ' users');
+        var Converter=require("csvtojson").Converter;
+        var csvConverter=new Converter({constructResult:false,trim:true});
+        var linesFound = 0;
+        csvConverter.on("record_parsed", function(line) {
+          linesFound++;
+          db.userInsert(line, req.session.user, function(err, item){
+            if(err) {
+              console.log('Could not insert user ' + line.username + ': ' + err);
+            }
+          });
+        });
+        csvConverter.on("end_parsed", function(results) { //results will be empty because I set constructResult:false
+          fs.unlink(filename, function(errRemove){
+            if(err) {console.log("cant remove uploaded file: " + errRemove)};
+            req.flash('info', 'Successfully started processing ' + linesFound + ' records in background');
             res.redirect('/upload');
           });
         });
+        fs.createReadStream(filename).pipe(csvConverter);
       }
     });
   } else {

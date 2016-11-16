@@ -10,7 +10,7 @@ exports.die = function(msg) {
 
 exports.inspectobject = function(obj) {
     const util = require('util');
-    console.log(util.inspect(object, {showHidden: false, depth: null}));
+    console.log(util.inspect(obj, {showHidden: false, depth: null}));
 }
 
 exports.hashpwd = function(pwd) {

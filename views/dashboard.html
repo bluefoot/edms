@@ -1,27 +1,32 @@
 {% extends 'base.html' %}
 {% block head %}
 <script type="text/javascript">
-$(document).ready(function(){
-    $('a.deleteemployee').each(function() {
-      $(this).click(function(e){
-        e.preventDefault();
-        $(this).addClass('deleting');
-        var username = $(this).attr('data-employee-username');
-        $.ajax({
-          url: '/employee',
-          type: 'DELETE',
-          data: 'username=' + username,
-          success: function(data) {
-            $('#line-' + username).fadeOut('slow', function() {
-              $('a[data-employee-username=' + username + ']').remove();
-            });
-          },
-          error: function(err) {
-            alert(err.responseText);
-          }
-        });
+$(document).ready(function() {
+  $('#search-form').submit(function(){
+    $(" input", this).after('<img src="/images/ajax-loader.gif" />');
+  });
+  $('a.deleteemployee').each(function() {
+    $(this).click(function(e){
+      e.preventDefault();
+      $(this).addClass('deleting');
+      var username = $(this).attr('data-employee-username');
+      var button = $(this);
+      $.ajax({
+        url: '/employee',
+        type: 'DELETE',
+        data: 'username=' + username,
+        success: function(data) {
+          $('#line-' + username).fadeOut('slow', function() {
+            $('a[data-employee-username=' + username + ']').remove();
+          });
+        },
+        error: function(err) {
+          alert(err.responseText);
+          button.removeClass('deleting');
+        }
       });
-   });
+    });
+ });
 });
 </script>
 {% endblock %}

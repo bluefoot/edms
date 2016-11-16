@@ -3,6 +3,8 @@
 <script type="text/javascript">
 $(document).ready(function(){
     $('#add-employee').submit(function(e) {
+        $('#submitbutton').before('<img id="submitloading" src="/images/ajax-loader.gif" />');
+        $('#submitbutton').attr('disabled', 'disabled');
         e.preventDefault();
         if($('#pwd').val()!=$('#pwd-confirm').val()) {
             alert("passwords don't match");
@@ -17,6 +19,8 @@ $(document).ready(function(){
           },
           error: function(err) {
             alert("Error: " + err.responseText);
+            $('#submitloading').remove();
+            $('#submitbutton').removeAttr('disabled');
           }
         });
       });
@@ -52,7 +56,7 @@ $(document).ready(function(){
        <input id="pwd-confirm" type="password" name="password" /> 
     </p>
     <p>
-        <input type="submit" value="New Registration" />
+        <input id="submitbutton" type="submit" value="New Registration" />
     </p>
    </form>
 {% endblock %}

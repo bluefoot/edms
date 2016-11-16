@@ -1,4 +1,5 @@
 /*eslint-env node*/
+// WHAT IS LEFT: fix identation, default error page (http://stackoverflow.com/questions/6528876/how-to-redirect-404-errors-to-a-page-in-expressjs - this will help respond depending on the "accept" header)
 
 //------------------------------------------------------------------------------
 // gewtonj-edms (Employee Data Management System by gewtonj@br.ibm.com)

@@ -89,9 +89,13 @@ exports.userFindAll = function(selector, page, callback) {
   });
 }
 
-exports.userInsert = function(user, callback) {
+exports.userInsert = function(user, owner, callback) {
+  if (typeof owner === "undefined") {
+    // this is when a new user inserts itself
+    owner = {username:user.username};
+  }
   for(var key in user) {
-    user[key] = user[key].trim();
+    user[key] = (''+user[key]).trim();   // the ''+ needed in case some values are not strings
   }
   user.password = edmsutils.hashpwd(user.password);
   if(!userValidate(user)) {
@@ -107,12 +111,13 @@ exports.userInsert = function(user, callback) {
       if(callback) callback(error, null);
     } else {
       mongo.collection('edms.users').insertOne(user, function(err, result) {
-        exports.auditInsert(user.username, "Created itself", function(errAudit, resultAudit){
+        exports.auditInsert(owner.username, "Created user: " + user.username, function(errAudit, resultAudit) {
           if(callback) callback(err, result);
         });
       });
     }
   });
+  
 }
 
 exports.userUpdate = function(id, newValues, owner, claimedOldPassword, callback) {
