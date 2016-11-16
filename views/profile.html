@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-{% if !edit %}
 {% block head %}
 <script type="text/javascript">
 $(document).ready(function(){
@@ -11,10 +10,13 @@ $(document).ready(function(){
     $('#editbutton').hide();
     $('#submitbutton').show();
   });
+  $('#profile').submit(function(e){
+    $('#submitbutton').before('<img src="/images/ajax-loader.gif" />');
+    $('#submitbutton').attr('disabled', 'disabled');
+  });
 });
 </script>
 {% endblock %}
-{% endif %}
 
 {% block content %}
    <form id="profile" method="post" action="/employee">

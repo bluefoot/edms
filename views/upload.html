@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+   <p>Use this page to upload a Comma Separated Values (CSV) file containing users to be inserted.<br />
+   CSV file must have 4 columns, in this order: username, first name, last name, email, password. </p>
+   <form id="upload" method="post" action="/upload" encType="multipart/form-data">
+    <p>
+       Upload file: <br />
+       <input type="file" id="input" name="input" accept=".csv,text/csv" />
+    </p>
+    <p>
+        <input type="submit" value="Upload" id="upload" />
+        | <a href="/dashboard">back to dashboard</a>
+    </p>
+   </form>
+{% endblock %}

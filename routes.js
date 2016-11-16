@@ -1,11 +1,79 @@
 // Define routes
 var edmsutils = require('./edmsutils.js');
-var mongoconnector = require('./mongodb-startup.js');
-var mongo;
-mongoconnector(function(m) {
-  mongo = m;
-});
-const LIMIT = 5;
+var db = require('./database.js');
+
+exports.userGet = function(req, res) {
+  if(req.session.user) {
+    if(req.params.username) {
+      db.userFind({'username':req.params.username}, function(err, item) {
+        if(item) {
+          res.send(item);
+        } else if (err) {
+          res.status(500).send('Error finding user: ' + err);
+        } else {
+          res.status(400).send('Username not found: ' + req.params.username);
+        }
+      });
+    } else {
+      res.status(500).send("Need username");
+    }
+  } else {
+    res.redirect('/');
+  }
+};
+
+exports.userInsert = function(req, res) {
+  db.userInsert(req.body.employee, function(err, item){
+    if (err) {
+      res.status(500).send('Could not create registration: ' + err);
+    } else {
+      res.send(item);
+    }
+  });
+};
+
+exports.userUpdate = function(req, res) {
+  if(req.session.user) {
+    // Need to query to get which profile the user wants to update, so we 
+    // can enforce some rules.
+    // Rules are: can't change password of others, and also can't change admin
+    // profile (unless you are admin).
+    // Not to mention basic rules: no field can be blank, can't change username,
+    // emails must be unique.
+    var refreshUserInSession = false;
+    var id = req.body.employee._id;
+    delete req.body.employee._id;
+    db.userUpdate(id, req.body.employee, req.session.user, req.body.oldpassword, function(err, result){
+      if(!err) {
+        req.flash('info', 'User was updated successfully');
+        if(result.username==req.session.user.username) {
+          req.serssion.user = result;
+          res.redirect('/profile');
+        } else {
+          res.redirect('/dashboard');
+        }
+      } else {
+        res.status(500).send('Could not update profile: ' + err);
+      }
+    });
+  } else {
+    res.status(400).send('You must be logged in to do that');
+  }
+};
+
+exports.userDelete = function(req, res){
+  if(req.session.user) {
+    db.userRemove(req.body.username, req.session.user, function(err, result){
+      if(err) {
+        res.status(500).send('Error deleting user ' + req.body.username + ': ' + err);
+      } else {
+        res.send(result);
+      }
+    });
+  } else {
+    res.status(400).send('You must be logged in to do that');
+  }
+};
 
 exports.index = function(req, res) {
   if(req.session.user) {
@@ -15,47 +83,34 @@ exports.index = function(req, res) {
   }
 };
 
-exports.profile = function(req, res) {
-  if(req.session.user) {
-    res.render('profile', {title : 'View profile', 'theuser' : req.session.user});
-  } else {
-    res.redirect('/');
-  }
+exports.registration = function(req, res) {
+  res.render('registration', {title : 'New registration page'});
 };
 
-exports.showprofileedit = function(req, res) {
-  if(req.session.user) {
-    renderpage = function(theuser){
-      res.render('profile', {title : 'Edit profile', 'edit' : true, 'theuser' : theuser});
-    };
-    // If an username param is defined, load it from database and send to edit
-    // If not, no need to hit database, just send the user in session
-    // Need a callback because loading from db is async
-    if(req.params.username) {
-      mongo.collection('edms.users').findOne({'username':req.params.username}, function(err, item) {
-        if(item) {
-          renderpage(item);
-        } else if (err) {
-          res.status(500).send('Error finding user: ' + err);
-        } else {
-          res.status(400).send('Username not found: ' + req.params.username);
-        }
+exports.login = function(req, res) {
+  res.render('login', {title : 'Login'});
+};
+
+exports.dologin = function(req, res) {
+  req.body.password = edmsutils.hashpwd(req.body.password);
+  db.userFind({'username':req.body.username, 'password':req.body.password}, function(err, item) {
+    if(item) {
+      req.session.user = item;
+      db.auditInsert(item.username, "login", function(err, result) {
+        res.redirect('/dashboard');
       });
     } else {
-      renderpage(req.session.user);
+      req.flash('error', 'Match not found');
+      res.redirect('/login');
     }
-  } else {
-    res.redirect('/');
-  }
+  });
 };
 
-exports.showprofileeditpwd = function(req, res) {
-  if(req.session.user) {
-    res.render('profile_edit_pwd', {title : 'Change my password'});
-  } else {
-    res.redirect('/');
-  }
+exports.logout = function(req, res) {
+  req.session.destroy();
+  res.redirect('/');
 };
+
 
 exports.dashboard = function(req, res) {
   if(req.session.user) {
@@ -72,21 +127,18 @@ exports.dashboard = function(req, res) {
                          ]
                   };
       }
-      var skip = req.query.page ? (req.query.page - 1) * LIMIT : 0;
-      var options = {'limit':LIMIT, 'skip':skip};
-      mongo.collection('edms.users').find(selector, options).toArray(
-          function(err, items) {
-            if(!err) {
-              res.render('dashboard', {
-                title : 'Dashboard page',
-                'employees' : items,
-                'page' : req.query.page ? parseInt(req.query.page) : 1,
-                'hidenext' : items.length < LIMIT ? true : false,
-                'q' : req.query.q
-              });
-            } else {
-              res.status(500).send("Can't fetch employees: " + err);
-            }
+      db.userFindAll(selector, req.query.page, function(err, items){
+        if(!err) {
+          res.render('dashboard', {
+            title : 'Dashboard page',
+            'employees' : items,
+            'page' : req.query.page ? parseInt(req.query.page) : 1,
+            'hidenext' : items.length < db.LIMIT ? true : false,
+            'q' : req.query.q
+          });
+        } else {
+          res.status(500).send("Can't fetch employees: " + err);
+        }
       });
     }
   } else {
@@ -94,17 +146,46 @@ exports.dashboard = function(req, res) {
   }
 };
 
-exports.registration = function(req, res) {
-  res.render('registration', {title : 'New registration page'});
+exports.userProfile = function(req, res) {
+  if(req.session.user) {
+    res.render('profile', {title : 'View profile', 'theuser' : req.session.user});
+  } else {
+    res.redirect('/');
+  }
 };
 
-exports.login = function(req, res) {
-  res.render('login', {title : 'Login'});
+exports.userProfileEdit = function(req, res) {
+  if(req.session.user) {
+    renderpage = function(theuser){
+      res.render('profile', {title : 'Edit profile', 'edit' : true, 'theuser' : theuser});
+    };
+    // If an username param is defined, load it from database and send to edit
+    // If not, no need to hit database, just send the user in session
+    // Need a callback because loading from db is async
+    if(req.params.username) {
+      db.userFind({'username':req.params.username}, function(err, item) {
+        if(item) {
+          renderpage(item);
+        } else if (err) {
+          res.status(500).send('Error finding user: ' + err);
+        } else {
+          res.status(400).send('Username not found: ' + req.params.username);
+        }
+      });
+    } else {
+      renderpage(req.session.user);
+    }
+  } else {
+    res.redirect('/');
+  }
 };
 
-exports.logout = function(req, res) {
-  req.session.destroy();
-  res.redirect('/');
+exports.userProfileEditPwd = function(req, res) {
+  if(req.session.user) {
+    res.render('profile_edit_pwd', {title : 'Change my password'});
+  } else {
+    res.redirect('/');
+  }
 };
 
 exports.audit = function(req, res) {
@@ -112,23 +193,68 @@ exports.audit = function(req, res) {
     if(req.query.page && req.query.page < 1) {
       res.redirect('/audit');
     } else {
-      var skip = req.query.page ? (req.query.page - 1) * LIMIT : 0;
-      var options = {'limit':LIMIT, 'skip':skip, 'sort':[['timestamp', 'descending']]};
-      mongo.collection('edms.audits').find({}, options).toArray(
-          function(err, items) {
-            if(!err) {
-              res.render('audit', {
-                title : 'Employee Audit Trails',
-                'audits' : items,
-                'page' : req.query.page ? parseInt(req.query.page) : 1,
-                'hidenext' : items.length < LIMIT ? true : false
-              });
-            } else {
-              res.status(500).send("Can't fetch audit records: " + err);
-            }
+      db.auditFindAll(req.query.page, function(err, items){
+        if(!err) {
+          res.render('audit', {
+            title : 'Employee Audit Trails',
+            'audits' : items,
+            'page' : req.query.page ? parseInt(req.query.page) : 1,
+            'hidenext' : items.length < db.LIMIT ? true : false
+          });
+        } else {
+          res.status(500).send("Can't fetch audit records: " + err);
+        }
       });
     }
   } else {
+    // don't even let normal users know about it
+    res.status(404);
+  }
+};
+
+exports.upload = function(req, res) {
+  if(req.session.user) {
+    res.render('upload', {title : 'Employee record upload'});
+  } else {
     res.redirect('/');
+  }
+};
+
+exports.doUpload = function(req, res) {
+  if(req.session.user) {
+    if (!req.files || !req.files.input) {
+      res.status(400).send('No files were uploaded.');
+      return;
+    }
+    processline = function(line) {
+      console.log("csvline: " + line);
+    }
+    var csv = req.files.input;
+    var filename = 'edmsupload-' + require("randomstring").generate() + '.csv';
+    var count = 0;
+    csv.mv(filename, function(err) {
+      if (err) {
+        res.status(500).send("Could not upload file: " + err);
+      } else {
+        console.log('file uploaded');
+        fs.createReadStream(filename)
+        .pipe(parse({delimiter: ','}))
+        .on('data', function(line) {
+          console.log("csvline: " + line);
+          count++;
+        })
+        .on('end',function() {
+          console.log("DONE");
+          fs.unlink(filename, function(err2){
+            if(err) {console.log("cant remove: " + err2)};
+            console.log("removing done");
+            req.flash('info', 'Successfully imported ' + count + ' users');
+            res.redirect('/upload');
+          });
+        });
+      }
+    });
+  } else {
+    res.status(400).send('You must be logged in to do that');
   }
 };

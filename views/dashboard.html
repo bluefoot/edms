@@ -5,6 +5,7 @@ $(document).ready(function(){
     $('a.deleteemployee').each(function() {
       $(this).click(function(e){
         e.preventDefault();
+        $(this).addClass('deleting');
         var username = $(this).attr('data-employee-username');
         $.ajax({
           url: '/employee',
@@ -57,7 +58,10 @@ $(document).ready(function(){
               <td>{{ employee.firstname }}</td>
               <td>{{ employee.lastname }}</td>
               <td>{{ employee.email }}</td>
-              <td><a href="/profile/edit/{{ employee.username }}">edit</a> | <a href="javascript:;" class="deleteemployee" data-employee-username="{{ employee.username }}">delete</a></td>
+              <td>
+                <a href="/profile/edit/{{ employee.username }}">edit</a> | 
+                <a href="javascript:;" class="deleteemployee" data-employee-username="{{ employee.username }}">delete</a>
+              </td>
           <tr>
           {% endfor %}
       </tbody>

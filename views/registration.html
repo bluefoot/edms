@@ -16,8 +16,7 @@ $(document).ready(function(){
               window.location = "/login";
           },
           error: function(err) {
-            var showstatus = err.status!=400 ? "(" + err.status + ") ":""; // If problem was bad data, don't show status code
-            alert("Could not create new registration: " + showstatus + err.responseText);
+            alert("Error: " + err.responseText);
           }
         });
       });
