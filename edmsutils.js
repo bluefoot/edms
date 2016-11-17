@@ -4,13 +4,12 @@ var exports = module.exports = {};
 var validator = require('validator');
 
 exports.die = function(msg) {
-    console.log(msg);
-    process.exit(1);
+  console.log(msg);
+  process.exit(1);
 }
 
 exports.inspectobject = function(obj) {
-    const util = require('util');
-    console.log(util.inspect(obj, {showHidden: false, depth: null}));
+  console.log(require('util').inspect(obj, {showHidden: false, depth: null}));
 }
 
 exports.hashpwd = function(pwd) {

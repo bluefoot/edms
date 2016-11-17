@@ -40,7 +40,7 @@ var bootstrapData = [
        {'username':'dragon', 'password':'0d07735398607502506eab639a1a637a7cfe9de3c34d865b5d3acb915cd13353', 'firstname' : 'Jeon', 'lastname' : 'Yong Soo', 'email' : 'ladydragon@somemail.com'}
        ];
 require('mongodb').MongoClient.connect(mongo_uri, {
-    mongos: {
+  mongos: {
       ssl: true,
       sslValidate: false
     }
@@ -67,7 +67,7 @@ require('mongodb').MongoClient.connect(mongo_uri, {
       });
     });
     mongo.createCollection('edms.audits', function(err, collection) {
-    });
+  });
 });
 
 exports.isDbReady = function() {
@@ -84,8 +84,8 @@ exports.userFindAll = function(selector, page, callback) {
   var skip = page ? (page - 1) * LIMIT : 0;
   var options = {'limit':LIMIT, 'skip':skip};
   mongo.collection('edms.users').find(selector, options).toArray(
-      function(err, items) {
-        if(callback) callback(err, items);
+    function(err, items) {
+      if(callback) callback(err, items);
   });
 }
 
@@ -237,13 +237,13 @@ exports.resetData = function(callback) {
 exports.displayUserData = function() {
   mongo.collection('edms.users').find().toArray(function(err, items) {
     if(!err) {
-        console.log("users found:=========================");
-        items.forEach(function(item) {
-            console.log(item);
-        });
-        console.log("====================================");
+      console.log("users found:=========================");
+      items.forEach(function(item) {
+        console.log(item);
+      });
+      console.log("====================================");
     } else {
-        console.log("can't get data to display: " + err);
+      console.log("can't get data to display: " + err);
     }
   });
 }

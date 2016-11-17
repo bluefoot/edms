@@ -2,61 +2,61 @@
 {% block head %}
 <script type="text/javascript">
 $(document).ready(function(){
-    $('#add-employee').submit(function(e) {
-        $('#submitbutton').before('<img id="submitloading" src="/images/ajax-loader.gif" />');
-        $('#submitbutton').attr('disabled', 'disabled');
-        e.preventDefault();
-        if($('#pwd').val()!=$('#pwd-confirm').val()) {
-            alert("passwords don't match");
-            return;
-        }
-        $.ajax({
-          url: '/api/employee/' + $('#username').val(),
-          type: 'PUT',
-          data: $(this).serialize(),
-          success: function(data) {
-              window.location = "/login";
-          },
-          error: function(err) {
-            alert("Error: " + err.responseText);
-            $('#submitloading').remove();
-            $('#submitbutton').removeAttr('disabled');
-          }
-        });
-      });
+  $('#add-employee').submit(function(e) {
+    $('#submitbutton').before('<img id="submitloading" src="/images/ajax-loader.gif" />');
+    $('#submitbutton').attr('disabled', 'disabled');
+    e.preventDefault();
+    if($('#pwd').val()!=$('#pwd-confirm').val()) {
+      alert("passwords don't match");
+      return;
+    }
+    $.ajax({
+      url: '/api/employee/' + $('#username').val(),
+      type: 'PUT',
+      data: $(this).serialize(),
+      success: function(data) {
+        window.location = "/login";
+      },
+      error: function(err) {
+      alert("Error: " + err.responseText);
+      $('#submitloading').remove();
+      $('#submitbutton').removeAttr('disabled');
+      }
+    });
+  });
 });
 </script>
 {% endblock %}
 
 {% block content %}
-   <p class='description'>Please complete your new registration by filling up all of the following fields</p> 
-   <form id="add-employee" method="put" action="/employee">
+  <p class='description'>Please complete your new registration by filling up all of the following fields</p> 
+  <form id="add-employee" method="put" action="/employee">
     <p>
-       Username (must be alphanumeric):<br />
-       <input id="username" type="text" /> 
+      Username (must be alphanumeric):<br />
+      <input id="username" type="text" /> 
     </p>
     <p>
-       First Name:<br />
-       <input type="text" name="employee[firstname]" /> 
+      First Name:<br />
+      <input type="text" name="employee[firstname]" /> 
     </p>
     <p>
-       Last Name:<br />
-       <input type="text" name="employee[lastname]" /> 
+      Last Name:<br />
+      <input type="text" name="employee[lastname]" /> 
     </p>
     <p>
-       Email:<br />
-       <input type="email" name="employee[email]" /> 
+      Email:<br />
+      <input type="email" name="employee[email]" /> 
     </p>
     <p>
-       Password:<br />
-       <input id="pwd" type="password" name="employee[password]" /> 
+      Password:<br />
+      <input id="pwd" type="password" name="employee[password]" /> 
     </p>
     <p>
-       Password confirmation:<br />
-       <input id="pwd-confirm" type="password" /> 
+      Password confirmation:<br />
+      <input id="pwd-confirm" type="password" /> 
     </p>
     <p>
-        <input id="submitbutton" type="submit" value="New Registration" />
+      <input id="submitbutton" type="submit" value="New Registration" />
     </p>
-   </form>
+  </form>
 {% endblock %}

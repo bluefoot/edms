@@ -3,29 +3,29 @@
 <script type="text/javascript">
 $(document).ready(function() {
   $('#search-form').submit(function(){
-    $(" input", this).after('<img src="/images/ajax-loader.gif" />');
+  $(" input", this).after('<img src="/images/ajax-loader.gif" />');
   });
   $('a.deleteemployee').each(function() {
-    $(this).click(function(e){
-      e.preventDefault();
-      $(this).addClass('deleting');
-      var username = $(this).attr('data-employee-username');
-      var button = $(this);
-      $.ajax({
-        url: '/api/employee/' + username,
-        type: 'DELETE',
-        data: '',
-        success: function(data) {
-          $('#line-' + username).fadeOut('slow', function() {
-            $('a[data-employee-username=' + username + ']').remove();
-          });
-        },
-        error: function(err) {
-          alert(err.responseText);
-          button.removeClass('deleting');
-        }
+  $(this).click(function(e){
+    e.preventDefault();
+    $(this).addClass('deleting');
+    var username = $(this).attr('data-employee-username');
+    var button = $(this);
+    $.ajax({
+    url: '/api/employee/' + username,
+    type: 'DELETE',
+    data: '',
+    success: function(data) {
+      $('#line-' + username).fadeOut('slow', function() {
+      $('a[data-employee-username=' + username + ']').remove();
       });
+    },
+    error: function(err) {
+      alert(err.responseText);
+      button.removeClass('deleting');
+    }
     });
+  });
  });
 });
 </script>
@@ -33,9 +33,9 @@ $(document).ready(function() {
 
 {% block content %}
 <div class="left">
-    <form id="search-form" method="get" action="">
-        Search: <input type="text" name="q" value="{{ q }}" />
-    </form>
+  <form id="search-form" method="get" action="">
+    Search: <input type="text" name="q" value="{{ q }}" />
+  </form>
 </div>
 <div class="right">
   {% if user.username=='admin' %}
@@ -47,29 +47,29 @@ $(document).ready(function() {
 <div id="employees-dashboard-list">
 {% if employees.length > 0  || page > 1 %}
   <table>
-      <thead>
-          <tr>
-              <td>Username</td>
-              <td>First Name</td>
-              <td>Last Name</td>
-              <td>Email</td>
-              <td>Options</td>
-          </tr>
-      </thead>   
-      <tbody>
-          {% for employee in employees %}
-          <tr id="line-{{ employee.username }}">
-              <td>{{ employee.username }}</td>
-              <td>{{ employee.firstname }}</td>
-              <td>{{ employee.lastname }}</td>
-              <td>{{ employee.email }}</td>
-              <td>
-                <a href="/profile/edit/{{ employee.username }}">edit</a> | 
-                <a href="javascript:;" class="deleteemployee" data-employee-username="{{ employee.username }}">delete</a>
-              </td>
-          <tr>
-          {% endfor %}
-      </tbody>
+    <thead>
+      <tr>
+        <td>Username</td>
+        <td>First Name</td>
+        <td>Last Name</td>
+        <td>Email</td>
+        <td>Options</td>
+      </tr>
+    </thead>   
+    <tbody>
+      {% for employee in employees %}
+      <tr id="line-{{ employee.username }}">
+        <td>{{ employee.username }}</td>
+        <td>{{ employee.firstname }}</td>
+        <td>{{ employee.lastname }}</td>
+        <td>{{ employee.email }}</td>
+        <td>
+        <a href="/profile/edit/{{ employee.username }}">edit</a> | 
+        <a href="javascript:;" class="deleteemployee" data-employee-username="{{ employee.username }}">delete</a>
+        </td>
+      <tr>
+      {% endfor %}
+    </tbody>
   </table>
   <div class="paginator">
   {% if q %}
@@ -77,12 +77,12 @@ $(document).ready(function() {
   {% else %}
   {% set query = '?' %}
   {% endif %}
-      {% if page>1 %}<a href="{{ query }}page={{ page-1 }}" title="previous page">&#8656;</a>{% endif %}
-      {{ page }}
-      {% if !hidenext %}<a href="{{ query }}page={{ page+1 }}" title="next page">&#8658;</a>{% endif %}
+    {% if page>1 %}<a href="{{ query }}page={{ page-1 }}" title="previous page">&#8656;</a>{% endif %}
+    {{ page }}
+    {% if !hidenext %}<a href="{{ query }}page={{ page+1 }}" title="next page">&#8658;</a>{% endif %}
   </div>
 {% else %}
-    No data was found{% if q %} with the these search terms <a href="/dashboard">click here to reset search terms</a>{% endif %}
+  No data was found{% if q %} with the these search terms <a href="/dashboard">click here to reset search terms</a>{% endif %}
 {% endif %}
 </div>
 

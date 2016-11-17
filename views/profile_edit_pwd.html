@@ -2,36 +2,36 @@
 {% block head %}
 <script type="text/javascript">
 $(document).ready(function(){
-    $('#editpwd').submit(function(e) {
-        if($('#pwd').val()!=$('#pwd-confirm').val()) {
-            e.preventDefault();
-            alert("new passwords don't match");
-            return;
-        }
-        $('#submitbutton').before('<img src="/images/ajax-loader.gif" />');
-        $('#submitbutton').attr('disabled', 'disabled');
-      });
+  $('#editpwd').submit(function(e) {
+    if($('#pwd').val()!=$('#pwd-confirm').val()) {
+      e.preventDefault();
+      alert("new passwords don't match");
+      return;
+    }
+    $('#submitbutton').before('<img src="/images/ajax-loader.gif" />');
+    $('#submitbutton').attr('disabled', 'disabled');
+    });
 });
 </script>
 {% endblock %}
 
 {% block content %}
-   <form id="editpwd" method="post" action="/api/employee/{{ user.username }}">
+  <form id="editpwd" method="post" action="/api/employee/{{ user.username }}">
     <p>
-       Old password:<br />
-       <input id="oldpwd" type="password" name="oldpassword" />
+      Old password:<br />
+      <input id="oldpwd" type="password" name="oldpassword" />
     </p>
     <p>
-       New password (must not be blank):<br />
-       <input id="pwd" type="password" name="employee[password]" /> 
+      New password (must not be blank):<br />
+      <input id="pwd" type="password" name="employee[password]" /> 
     </p>
     <p>
-       New password confirmation:<br />
-       <input id="pwd-confirm" type="password" /> 
+      New password confirmation:<br />
+      <input id="pwd-confirm" type="password" /> 
     </p>
     <p>
-        <input type="submit" id="submitbutton" value="Change password" />
-        | <a href="/dashboard">back to dashboard</a>
+      <input type="submit" id="submitbutton" value="Change password" />
+      | <a href="/dashboard">back to dashboard</a>
     </p>
-   </form>
+  </form>
 {% endblock %}

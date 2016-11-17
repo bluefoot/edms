@@ -19,26 +19,26 @@ $(document).ready(function(){
 {% endblock %}
 
 {% block content %}
-   <form id="profile" method="post" action="/api/employee/{{ theuser.username }}">
+  <form id="profile" method="post" action="/api/employee/{{ theuser.username }}">
     <p>
-       Username: {{ theuser.username }}
+      Username: {{ theuser.username }}
     </p>
     <p>
-       First Name:<br />
-       <input type="text" name="employee[firstname]" value="{{ theuser.firstname}}" {% if !edit %}disabled="disabled"{% endif %} /> 
+      First Name:<br />
+      <input type="text" name="employee[firstname]" value="{{ theuser.firstname}}" {% if !edit %}disabled="disabled"{% endif %} /> 
     </p>
     <p>
-       Last Name:<br />
-       <input type="text" name="employee[lastname]" value="{{ theuser.lastname}}" {% if !edit %}disabled="disabled"{% endif %} /> 
+      Last Name:<br />
+      <input type="text" name="employee[lastname]" value="{{ theuser.lastname}}" {% if !edit %}disabled="disabled"{% endif %} /> 
     </p>
     <p>
-       Email:<br />
-       <input type="email" name="employee[email]" value="{{ theuser.email}}" {% if !edit %}disabled="disabled"{% endif %} />
+      Email:<br />
+      <input type="email" name="employee[email]" value="{{ theuser.email}}" {% if !edit %}disabled="disabled"{% endif %} />
     </p>
     <p>
-        {% if !edit %}<a href="/profile/edit" id="editbutton">Edit</a>{% endif %}
-        <input type="submit" value="Save changes" id="submitbutton" {% if !edit %}style="display:none"{% endif %} />
-        | <a href="/dashboard">back to dashboard</a>
+      {% if !edit %}<a href="/profile/edit" id="editbutton">Edit</a>{% endif %}
+      <input type="submit" value="Save changes" id="submitbutton" {% if !edit %}style="display:none"{% endif %} />
+      | <a href="/dashboard">back to dashboard</a>
     </p>
-   </form>
+  </form>
 {% endblock %}

@@ -12,17 +12,17 @@ $(document).ready(function(){
 {% endblock %}
 
 {% block content %}
-   <p>Use this page to upload a Comma Separated Values (CSV) file containing users to be inserted.<br />
-   CSV file must have 5 columns, in any order: username, first name, last name, email, password.<br />
-   First row must be the header which contains column names. </p>
-   <form id="upload" method="post" action="/upload" encType="multipart/form-data">
+  <p>Use this page to upload a Comma Separated Values (CSV) file containing users to be inserted.<br />
+  CSV file must have 5 columns, in any order: username, first name, last name, email, password.<br />
+  First row must be the header which contains column names. </p>
+  <form id="upload" method="post" action="/upload" encType="multipart/form-data">
     <p>
-       Upload file: <br />
-       <input type="file" id="input" name="input" accept=".csv,text/csv" />
+      Upload file: <br />
+      <input type="file" id="input" name="input" accept=".csv,text/csv" />
     </p>
     <p>
-        <input id="submitbutton" type="submit" value="Upload"/>
-        | <a href="/dashboard">back to dashboard</a>
+      <input id="submitbutton" type="submit" value="Upload"/>
+      | <a href="/dashboard">back to dashboard</a>
     </p>
-   </form>
+  </form>
 {% endblock %}
