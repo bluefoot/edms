@@ -89,10 +89,13 @@ exports.userFindAll = function(selector, page, callback) {
   });
 }
 
-exports.userInsert = function(user, owner, callback) {
-  if (typeof owner === "undefined") {
+/**
+ * Inserts user and returns the full object
+ */
+exports.userInsert = function(user, authenticatedUsername, callback) {
+  if (typeof authenticatedUsername === "undefined") {
     // this is when a new user inserts itself
-    owner = {username:user.username};
+    authenticatedUsername = user.username;
   }
   for(var key in user) {
     user[key] = (''+user[key]).trim();   // the ''+ needed in case some values are not strings
@@ -111,8 +114,12 @@ exports.userInsert = function(user, owner, callback) {
       if(callback) callback(error, null);
     } else {
       mongo.collection('edms.users').insertOne(user, function(err, result) {
-        exports.auditInsert(owner.username, "Created user: " + user.username, function(errAudit, resultAudit) {
-          if(callback) callback(err, result);
+        if(err) throw err;
+        exports.userFind({username:user.username}, function(errfind, resultfind){
+          if(errfind) throw errfind;
+          exports.auditInsert(authenticatedUsername, "Created user: " + user.username, function(errAudit, resultAudit) {
+            if(callback) callback(err, resultfind);
+          });
         });
       });
     }
@@ -120,22 +127,23 @@ exports.userInsert = function(user, owner, callback) {
   
 }
 
-exports.userUpdate = function(id, newValues, owner, claimedOldPassword, callback) {
+exports.userUpdate = function(usernameToUpdate, newValues, authenticatedUsername, claimedOldPassword, callback) {
   var refreshUserInSession = false;
-  mongo.collection('edms.users').findOne({'_id':require('mongodb').ObjectID.createFromHexString(id)}, function(err, userToUpdate) {
+  mongo.collection('edms.users').findOne({'username':usernameToUpdate}, function(err, userToUpdate) {
     // Validate
     if(!userToUpdate) {
       if(callback) callback("User not found", null);
       return;
     }
-    if(userToUpdate.username=='admin' && owner.username!='admin') {
+    if(userToUpdate.username=='admin' && authenticatedUsername!='admin') {
       if(callback) callback("Not allowed to update admin user", null);
       return;
     }
-    if(userToUpdate.username!=owner.username && newValues.password) {
+    if(userToUpdate.username!=authenticatedUsername && newValues.password) {
       if(callback) callback("Can't change password of another user", null);
       return;
     }
+    delete newValues.username; // username can't be edited
     // Trim all values, check for blank or invalid ones
     for(var key in newValues) {
       newValues[key] = newValues[key].trim();
@@ -148,14 +156,10 @@ exports.userUpdate = function(id, newValues, owner, claimedOldPassword, callback
         return;
       }
     }
-    if(newValues.username) {
-      if(callback) callback("Can't change username", null);
-      return;
-    }
     if(newValues.password) {
       newValues.password = edmsutils.hashpwd(newValues.password);
-      if(userToUpdate.password!=edmsutils.hashpwd(claimedOldPassword)) {
-        if(callback) callback("Current password doesn't match. Hint: there are no hints", null);
+      if(claimedOldPassword && (userToUpdate.password!=edmsutils.hashpwd(claimedOldPassword))) {
+        if(callback) callback("Current password not sent or doesn't match. Hint: there are no hints", null);
         return;
       }
     }
@@ -163,10 +167,14 @@ exports.userUpdate = function(id, newValues, owner, claimedOldPassword, callback
     doupdate = function() {
       mongo.collection('edms.users').update(
           {'username' : userToUpdate.username}, 
-          {'$set': newValues}, 
+          {'$set': newValues},
           function(err, result) {
-            exports.auditInsert(owner.username, "Updated user: " + userToUpdate.username, function(errAudit, resultAudit){
-              if(callback) callback(err, result);
+            if(err) throw err;
+            exports.userFind({username:userToUpdate.username}, function(errfind, resultfind){
+              if(errfind) throw errfind;
+              exports.auditInsert(authenticatedUsername, "Updated user: " + userToUpdate.username, function(errAudit, resultAudit){
+                if(callback) callback(err, resultfind);
+              });
             });
           });
     }
@@ -186,15 +194,19 @@ exports.userUpdate = function(id, newValues, owner, claimedOldPassword, callback
   });
 }
 
-exports.userRemove = function(username, owner, callback) {
+exports.userRemove = function(username, authenticatedUsername, callback) {
   if(username=="admin") {
     if(callback) callback("Cannot delete admin", null);
     return;
   }
   mongo.collection('edms.users').remove({'username' : username}, {w:1}, function(err, result){
-    exports.auditInsert(owner.username, "Deleted user: " + username, function(errAudit, resultAudit){
-      if(callback) callback(err, result);
-    });
+    if(result.n==0) {
+      if(callback) callback('Nothing was deleted', null);
+    } else {
+      exports.auditInsert(authenticatedUsername, "Deleted user: " + username, function(errAudit, resultAudit){
+        if(callback) callback(err, result);
+      });
+    }
   });
 }
 

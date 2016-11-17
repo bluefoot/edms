@@ -2,39 +2,64 @@
 var edmsutils = require('./edmsutils.js');
 var db = require('./database.js');
 var fs = require('fs');
+var jwt = require('jwt-simple');
+const jwtsecret = 'LOr4Kspiv2uJRarrU8JsNSRVT4UgGj8KEKA8J14QO3HZbP6klN';
 
-exports.userGet = function(req, res) {
+exports.getEmployee = function(req, res) {
+  var authenticatedUsername;
   if(req.session.user) {
-    if(req.params.username) {
-      db.userFind({'username':req.params.username}, function(err, item) {
-        if(item) {
-          res.send(item);
-        } else if (err) {
-          res.status(500).send('Error finding user: ' + err);
-        } else {
-          res.status(400).send('Username not found: ' + req.params.username);
-        }
-      });
-    } else {
-      res.status(500).send("Need username");
-    }
+    // if coming from webpage, then session is expected
+    authenticatedUsername = req.session.user.username;
+  } else {
+    // else, then it's coming from API, so JWT token is expected
+    authenticatedUsername = getUsernameFromToken(req.headers);
+  }
+  if(authenticatedUsername) {
+    db.userFind({'username':req.params.username}, function(err, item) {
+      if(item) {
+        res.send(item);
+      } else if (err) {
+        res.status(500).send('Error finding employee: ' + err);
+      } else {
+        res.status(404).send('Employee not found: ' + req.params.username);
+      }
+    });
   } else {
     res.redirect('/');
   }
 };
 
-exports.userInsert = function(req, res) {
-  db.userInsert(req.body.employee, req.session.user, function(err, item){
-    if (err) {
-      res.status(500).send('Could not create registration: ' + err);
-    } else {
+exports.putEmployee = function(req, res) {
+  // this method does not require authentication (per requirements)
+  // any user can register itself
+  var employee = req.body.employee;
+  employee.username = req.params.username;
+  db.userFind({username:employee.username}, function(err, item){
+    if(item) {
+      // PUT is idempotent, so if exists it needs to either replace or return
       res.send(item);
+    } else {
+      db.userInsert(employee, req.params.username, function(err, item){
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          res.send(item);
+        }
+      });
     }
   });
 };
 
-exports.userUpdate = function(req, res) {
+exports.postEmployee = function(req, res) {
+  var authenticatedUsername;
   if(req.session.user) {
+    // if coming from webpage, then session is expected
+    authenticatedUsername = req.session.user.username;
+  } else {
+    // else, then it's coming from API, so JWT token is expected
+    authenticatedUsername = getUsernameFromToken(req.headers);
+  }
+  if(authenticatedUsername) {
     // Need to query to get which profile the user wants to update, so we 
     // can enforce some rules.
     // Rules are: can't change password of others, and also can't change admin
@@ -42,39 +67,77 @@ exports.userUpdate = function(req, res) {
     // Not to mention basic rules: no field can be blank, can't change username,
     // emails must be unique.
     var refreshUserInSession = false;
-    var id = req.body.employee._id;
-    delete req.body.employee._id;
-    db.userUpdate(id, req.body.employee, req.session.user, req.body.oldpassword, function(err, result){
+    var usernameToUpdate = req.params.username;
+    db.userUpdate(usernameToUpdate, req.body.employee, authenticatedUsername, req.body.oldpassword, function(err, item){
       if(!err) {
-        req.flash('info', 'User was updated successfully');
-        if(result.username==req.session.user.username) {
-          req.serssion.user = result;
+        req.flash('info', 'Employee was updated successfully');
+        if(req.session.user && (item.username==req.session.user.username)) {
+          // If user is editing itself, refresh the fields form session and send user back to profile
+          req.session.user = item;
           res.redirect('/profile');
         } else {
-          res.redirect('/dashboard');
+          res.format({
+            'text/html': function(){
+              res.redirect('/dashboard');
+            },
+
+            'application/json': function() {
+              res.send(item);
+            }
+          });
         }
       } else {
-        res.status(500).send('Could not update profile: ' + err);
+        res.status(500).send('Could not update employee: ' + err);
       }
     });
   } else {
-    res.status(400).send('You must be logged in to do that');
+    res.status(403).send('You must be logged in to do that');
   }
 };
 
-exports.userDelete = function(req, res){
+exports.deleteEmployee = function(req, res){
+  var authenticatedUsername;
   if(req.session.user) {
-    db.userRemove(req.body.username, req.session.user, function(err, result){
-      if(err) {
-        res.status(500).send('Error deleting user ' + req.body.username + ': ' + err);
+    // if coming from webpage, then session is expected
+    authenticatedUsername = req.session.user.username;
+  } else {
+    // else, then it's coming from API, so JWT token is expected
+    authenticatedUsername = getUsernameFromToken(req.headers);
+  }
+  if(authenticatedUsername) {
+    db.userFind({username:req.params.username}, function(err, item) {
+      if(!item) {
+        res.status(404).send('Employee not found');
       } else {
-        res.send(result);
+        db.userRemove(req.params.username, authenticatedUsername, function(err, result){
+          if(err) {
+            res.status(500).send('Error deleting user ' + req.params.username + ': ' + err);
+          } else {
+            res.send({success:true});
+          }
+        });
       }
     });
   } else {
-    res.status(400).send('You must be logged in to do that');
+    res.status(403).send('You must be logged in to do that');
   }
 };
+
+exports.apiAuth = function(req, res) {
+  //FIXME is this really necessary? all methods could just check for user/pwd from headers and that's it
+  var credentials = getUserAndPasswordFromHeaders();
+  credentials.password = edmsutils.hashpwd(credentials.password);
+  db.userFind({'username':credentials.username, 'password':credentials.password}, function(err, item) {
+    if(item) {
+      db.auditInsert(item.username, "Authenticate API", function(err, result) {
+        var token = jwt.encode({username:item.username}, jwtsecret);
+        res.send({success:true, jwt:token});
+      });
+    } else {
+      res.send({success:false, msg:'Authentication failed: match not found'});
+    }
+  });
+}
 
 exports.index = function(req, res) {
   if(req.session.user) {
@@ -238,15 +301,15 @@ exports.doUpload = function(req, res) {
         var linesFound = 0;
         csvConverter.on("record_parsed", function(line) {
           linesFound++;
-          db.userInsert(line, req.session.user, function(err, item){
+          db.userInsert(line, req.session.user.username, function(err, item){
             if(err) {
-              console.log('Could not insert user ' + line.username + ': ' + err);
+              console.log('Could not bulk insert user ' + line.username + ': ' + err);
             }
           });
         });
         csvConverter.on("end_parsed", function(results) { //results will be empty because I set constructResult:false
           fs.unlink(filename, function(errRemove){
-            if(err) {console.log("cant remove uploaded file: " + errRemove)};
+            if(err) {console.log("cant remove uploaded CSV file: " + errRemove)};
             req.flash('info', 'Successfully started processing ' + linesFound + ' records in background');
             res.redirect('/upload');
           });
@@ -255,6 +318,49 @@ exports.doUpload = function(req, res) {
       }
     });
   } else {
-    res.status(400).send('You must be logged in to do that');
+    res.status(403).send('You must be logged in to do that');
   }
 };
+
+
+function getUsernameFromToken(headers) {
+  // Check for "authorization" base64 token from headers
+  // Some clients will always user:password, even if password is blank, so need to check that.
+  // If not found or invalid, return null
+  try {
+    if(headers && headers.authorization) {
+      var p = headers.authorization.split(' ');
+      if (p.length === 2) {
+        var plaintoken = new Buffer(p[1], 'base64').toString('ascii');
+        plaintoken = plaintoken.split(':')[0];
+        return jwt.decode(plaintoken, jwtsecret).username;
+      } else {
+        return null;
+      }
+      return 
+    }
+  } catch(err) {
+    console.log(err);
+  }
+  return null;
+}
+
+function getUserAndPasswordFromHeaders(headers) {
+  // Check for "authorization" base64 user and password from headers
+  // If not found or invalid, return null
+  try {
+    if(headers && headers.authorization) {
+      var p = headers.authorization.split(' ');
+      if (p.length === 2) {
+        var plainUserAndPwd = new Buffer(p[1], 'base64').toString('ascii').split(':');
+        return {username:plainUserAndPwd[0], password:plainUserAndPwd[1]};
+      } else {
+        return null;
+      }
+      return 
+    }
+  } catch(err) {
+    console.log(err);
+  }
+  return null;
+}

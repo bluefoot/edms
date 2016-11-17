@@ -19,10 +19,9 @@ $(document).ready(function(){
 {% endblock %}
 
 {% block content %}
-   <form id="profile" method="post" action="/employee">
+   <form id="profile" method="post" action="/api/employee/{{ theuser.username }}">
     <p>
        Username: {{ theuser.username }}
-       <input type="hidden" name="employee[_id]" value="{% if theuser._id.toHexString %}{{ theuser._id.toHexString() }}{% else %}{{ theuser._id }}{% endif %}" />
     </p>
     <p>
        First Name:<br />

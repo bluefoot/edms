@@ -24,7 +24,8 @@
 		"cookie-parser": "^1.4.3",
 		"express-fileupload": "^0.0.5",
 		"randomstring":"^1.1.5",
-		"csvtojson":"^1.0.3"
+		"csvtojson":"^1.0.3",
+		"jwt-simple":"^0.5.0"
 	},
 	"repository": {},
 	"engines": {

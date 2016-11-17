@@ -11,7 +11,7 @@ $(document).ready(function(){
             return;
         }
         $.ajax({
-          url: '/employee',
+          url: '/api/employee/' + $('#username').val(),
           type: 'PUT',
           data: $(this).serialize(),
           success: function(data) {
@@ -33,7 +33,7 @@ $(document).ready(function(){
    <form id="add-employee" method="put" action="/employee">
     <p>
        Username (must be alphanumeric):<br />
-       <input type="text" name="employee[username]" /> 
+       <input id="username" type="text" /> 
     </p>
     <p>
        First Name:<br />
@@ -53,7 +53,7 @@ $(document).ready(function(){
     </p>
     <p>
        Password confirmation:<br />
-       <input id="pwd-confirm" type="password" name="password" /> 
+       <input id="pwd-confirm" type="password" /> 
     </p>
     <p>
         <input id="submitbutton" type="submit" value="New Registration" />

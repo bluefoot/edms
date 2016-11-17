@@ -1,5 +1,12 @@
-/*eslint-env node*/
-// WHAT IS LEFT: fix identation, default error page (http://stackoverflow.com/questions/6528876/how-to-redirect-404-errors-to-a-page-in-expressjs - this will help respond depending on the "accept" header)
+/*eslint-env node
+ * WHAT IS LEFT:
+ * - replace JWT with normal user/password
+ * - fix identation
+ * - default error page (http://stackoverflow.com/questions/6528876/how-to-redirect-404-errors-to-a-page-in-expressjs
+      - this will help respond depending on the "accept" header)
+ * - test
+ * */
+//
 
 //------------------------------------------------------------------------------
 // gewtonj-edms (Employee Data Management System by gewtonj@br.ibm.com)
@@ -20,8 +27,6 @@ var parse = require('csv-parse');
 var async = require('async');
 var routes = require('./routes');
 var db = require('./database.js');
-
-// cfenv provides access to your Cloud Foundry environment
 var cfenv = require('cfenv');
 
 // create a new express server
@@ -56,15 +61,15 @@ app.use(fileUpload());
 // serve the files out of ./public as our main files
 app.use(express.static(__dirname + '/public'));
 
-// get the app environment from Cloud Foundry
-var appEnv = cfenv.getAppEnv();
-
 // Routes
 // REST verbs to manipulate employee resource: ================================
-// GET    /employee/:username    view employee data
-// PUT    /employee              insert employee (aka "new registration")
-// DELETE /employee              remove employee
-// POST   /employee              update employee (aka "edit profile details")
+// GET    /api/employee/:username       get employee
+// PUT    /api/employee/:username       put employee (employee data should be added in the request body)
+// POST   /api/employee/:username       post employee (employee data should be added in the request body)
+// DELETE /api/employee/:username       delete employee
+// POST   /api/authenticate             since it requires authentication, this 
+//                                      method returns a JWT token to be used 
+//                                      while calling other api methods
 //
 // Web interface routes: ======================================================
 // GET    /                             view start page
@@ -80,7 +85,7 @@ var appEnv = cfenv.getAppEnv();
 // GET    /audit                        view audit page
 // GET    /upload                       view page to upload CSV
 // POST   /upload                       submit CSV
-app.get('*', function(req, res, next) {
+app.all('*', function(req, res, next) {
   // Check if mongodb finished connecting and loading bootstrap data
   if(!db.isDbReady()) {
     res.status(500).send('Application still loading, try again');
@@ -91,10 +96,11 @@ app.get('*', function(req, res, next) {
     next();
   }
 });
-app.get('/employee/:username', routes.userGet);
-app.put('/employee', routes.userInsert);
-app.post('/employee', routes.userUpdate);
-app.delete('/employee', routes.userDelete);
+app.get('/api/employee/:username', routes.getEmployee);
+app.put('/api/employee/:username', routes.putEmployee);
+app.post('/api/employee/:username', routes.postEmployee);
+app.delete('/api/employee/:username', routes.deleteEmployee);
+app.post('/api/authenticate', routes.apiAuth);
 
 app.get('/', routes.index);
 app.get('/register', routes.registration);
@@ -108,6 +114,9 @@ app.get('/profile/editpwd', routes.userProfileEditPwd);
 app.get('/audit', routes.audit);
 app.get('/upload', routes.upload);
 app.post('/upload', routes.doUpload);
+
+//get the app environment from Cloud Foundry
+var appEnv = cfenv.getAppEnv();
 
 // start server on the specified port and binding host
 app.listen(appEnv.port, '0.0.0.0', function() {

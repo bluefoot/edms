@@ -8,17 +8,15 @@ $(document).ready(function(){
             alert("new passwords don't match");
             return;
         }
+        $('#submitbutton').before('<img src="/images/ajax-loader.gif" />');
+        $('#submitbutton').attr('disabled', 'disabled');
       });
-    $('#editpwd').submit(function(e){
-      $('#submitbutton').before('<img src="/images/ajax-loader.gif" />');
-      $('#submitbutton').attr('disabled', 'disabled');
-    });
 });
 </script>
 {% endblock %}
 
 {% block content %}
-   <form id="editpwd" method="post" action="/employee">
+   <form id="editpwd" method="post" action="/api/employee/{{ user.username }}">
     <p>
        Old password:<br />
        <input id="oldpwd" type="password" name="oldpassword" />
@@ -29,12 +27,11 @@ $(document).ready(function(){
     </p>
     <p>
        New password confirmation:<br />
-       <input id="pwd-confirm" type="password" name="password" /> 
+       <input id="pwd-confirm" type="password" /> 
     </p>
     <p>
         <input type="submit" id="submitbutton" value="Change password" />
         | <a href="/dashboard">back to dashboard</a>
-        <input type="hidden" name="employee[_id]" value="{% if user._id.toHexString %}{{ user._id.toHexString() }}{% else %}{{ user._id }}{% endif %}" />
     </p>
    </form>
 {% endblock %}
