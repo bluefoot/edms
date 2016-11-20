@@ -1,11 +1,4 @@
-/*eslint-env node
- * WHAT IS LEFT:
- * - replace JWT with normal user/password
- * - default error page (http://stackoverflow.com/questions/6528876/how-to-redirect-404-errors-to-a-page-in-expressjs
-      - this will help respond depending on the "accept" header)
- * - test, or just do readme
- * */
-//
+/*eslint-env node */
 
 //------------------------------------------------------------------------------
 // gewtonj-edms (Employee Data Management System by gewtonj@br.ibm.com)
@@ -60,7 +53,7 @@ app.use(fileUpload());
 app.use(express.static(__dirname + '/public'));
 
 // Routes
-// REST verbs to manipulate employee resource: ================================
+// REST verbs to manipulate employee resource (see README.md): ================
 // GET    /api/employee/:username       get employee
 // PUT    /api/employee/:username       put employee (employee data should be added in the request body)
 // POST   /api/employee/:username       post employee (employee data should be added in the request body)
