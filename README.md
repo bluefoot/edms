@@ -14,13 +14,13 @@ API to be used by other applications or clients.
 
 The REST resources are:
 
-| Verb          | Resource                  | Required Parameters           |
-| ------------- | ------------------------- | ----------------------------- |
-| POST          | /api/authenticate         | See [here](#api-authenticate) |
-| GET           | /api/employee/:username   | See [here](#employee-get)     |
-| PUT           | /api/employee/:username   | See [here](#employee-put)     |
-| POST          | /api/employee/:username   | See [here](#employee-post)    |
-| DELETE        | /api/employee/:username   | See [here](#employee-delete)  |
+| Verb          | Resource                  | Required Parameters                        |
+| ------------- | ------------------------- | ------------------------------------------ |
+| POST          | /api/authenticate         | See [here](#post-api-authenticate)         |
+| GET           | /api/employee/:username   | See [here](#get-api-employee-username)     |
+| PUT           | /api/employee/:username   | See [here](#put-api-employee-username)     |
+| POST          | /api/employee/:username   | See [here](#post-api-employee-username)    |
+| DELETE        | /api/employee/:username   | See [here](#delete-api-employee-username)  |
 
 ***
 
@@ -51,7 +51,7 @@ GETs an employee record.
 
 #### Authorization headers
 
-- username: a valid API token issued for an specific username (see [here](#api-authenticate))
+- username: a valid API token issued for an specific username (see [here](#post-api-authenticate))
 
 #### Parameter body
 
@@ -103,7 +103,7 @@ POSTs data to change an existing employee record. The resource (username) must e
 
 #### Authorization headers
 
-- username: a valid API token issued for an specific username (see [here](#api-authenticate))
+- username: a valid API token issued for an specific username (see [here](#post-api-authenticate))
 
 #### Parameter body
 
@@ -133,7 +133,7 @@ DELETEs an employee.
 
 #### Authorization headers
 
-- username: a valid API token issued for an specific username (see [here](#api-authenticate))
+- username: a valid API token issued for an specific username (see [here](#post-api-authenticate))
 
 #### Parameter body
 
