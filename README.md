@@ -24,7 +24,7 @@ The REST resources are:
 
 ***
 
-### <a name="api-authenticate"></a>POST /api/authenticate
+### POST /api/authenticate
 
 Issues an API token to be used in further API calls. This should be called first 
 before trying out the other methods, since they require an API token for authentication.
@@ -45,7 +45,7 @@ None
 
 ***
 
-### <a name="employee-get"></a>GET /api/employee/:username
+### GET /api/employee/:username
 
 GETs an employee record.
 
@@ -68,7 +68,7 @@ None
 
 ***
 
-### <a name="employee-put"></a>PUT /api/employee/:username
+### PUT /api/employee/:username
 
 PUTs an employee record. A new record will be created if not exists.
 
@@ -97,7 +97,7 @@ all parameters are required
 
 ***
 
-### <a name="employee-post"></a>POST /api/employee/:username
+### POST /api/employee/:username
 
 POSTs data to change an existing employee record. The resource (username) must exist previously.
 
@@ -127,7 +127,7 @@ No field is required. Only sent fields will be updated.
 
 ***
 
-### <a name="employee-delete"></a>DELETE /api/employee/:username
+### DELETE /api/employee/:username
 
 DELETEs an employee.
 
