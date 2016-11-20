@@ -23,7 +23,6 @@ var flash = require('express-flash');
 var fileUpload = require('express-fileupload');
 var fs = require('fs');
 var parse = require('csv-parse');
-var async = require('async');
 var routes = require('./routes');
 var db = require('./database.js');
 var cfenv = require('cfenv');
