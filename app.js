@@ -3,7 +3,8 @@
  * - replace JWT with normal user/password
  * - default error page (http://stackoverflow.com/questions/6528876/how-to-redirect-404-errors-to-a-page-in-expressjs
       - this will help respond depending on the "accept" header)
- * - test
+ * - test, or just do readme
+ * - excel
  * */
 //
 
@@ -111,6 +112,7 @@ app.get('/profile', routes.userProfile);
 app.get('/profile/edit/:username?', routes.userProfileEdit);
 app.get('/profile/editpwd', routes.userProfileEditPwd);
 app.get('/audit', routes.audit);
+app.get('/auditdownload', routes.auditdownload);
 app.get('/upload', routes.upload);
 app.post('/upload', routes.doUpload);
 

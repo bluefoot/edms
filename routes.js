@@ -191,7 +191,7 @@ exports.dashboard = function(req, res) {
                          ]
                   };
       }
-      db.userFindAll(selector, req.query.page, function(err, items){
+      db.userFindAll(selector, {page:req.query.page}, function(err, items){
         if(!err) {
           res.render('dashboard', {
             title : 'Dashboard page',
@@ -257,7 +257,8 @@ exports.audit = function(req, res) {
     if(req.query.page && req.query.page < 1) {
       res.redirect('/audit');
     } else {
-      db.auditFindAll(req.query.page, function(err, items){
+      db.auditFindAll({page:req.query.page}, function(err, items){
+        
         if(!err) {
           res.render('audit', {
             title : 'Employee Audit Trails',
@@ -271,13 +272,37 @@ exports.audit = function(req, res) {
       });
     }
   } else {
-    // don't even let normal users know about it
-    res.status(404).send("Page not found");
+    res.redirect('/');
   }
-};
+}
+
+exports.auditdownload = function(req, res) {
+  if(req.session.user && req.session.user.username=='admin') {
+    db.auditFindAll({nolimit:true, getAsCursor:true}, function(err, cursor){
+      if(!err) {
+        res.setHeader('Content-disposition', 'attachment; filename=audit.csv');
+        res.setHeader('Content-type', 'application/json');
+        res.status(200);
+        var firstLineProcessed = false;
+        cursor.stream({transform: function(item){
+          var csvline = '';
+          if(!firstLineProcessed) {
+            csvline = '"username","date (ISO format)","comments"\n';
+            firstLineProcessed = true;
+          }
+          return csvline+='"' + item.username + '","' + new Date(item.timestamp).toISOString() + '","' + item.comments + '"\n';
+        }}).pipe(res);
+      } else {
+        res.status(500).send("Can't fetch audit: " + err);
+      }
+    });
+  } else {
+    res.redirect('/');
+  }
+}
 
 exports.upload = function(req, res) {
-  if(req.session.user) {
+  if(req.session.user && req.session.user.username=='admin') {
     res.render('upload', {title : 'Employee record upload'});
   } else {
     res.redirect('/');
@@ -285,7 +310,7 @@ exports.upload = function(req, res) {
 };
 
 exports.doUpload = function(req, res) {
-  if(req.session.user) {
+  if(req.session.user && req.session.user.username=='admin') {
     if (!req.files || !req.files.input) {
       res.status(400).send('No files were uploaded.');
       return;
@@ -318,10 +343,9 @@ exports.doUpload = function(req, res) {
       }
     });
   } else {
-    res.status(403).send('You must be logged in to do that');
+    res.status(403).send('You\'re not authorized to do that');
   }
-};
-
+}
 
 function getUsernameFromToken(headers) {
   // Check for "authorization" base64 token from headers

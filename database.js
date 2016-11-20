@@ -80,13 +80,21 @@ exports.userFind = function(fields, callback) {
   });
 }
 
-exports.userFindAll = function(selector, page, callback) {
-  var skip = page ? (page - 1) * LIMIT : 0;
+exports.userFindAll = function(selector, queryOptions, callback) {
+  var skip = queryOptions.page ? (queryOptions.page - 1) * LIMIT : 0;
   var options = {'limit':LIMIT, 'skip':skip};
-  mongo.collection('edms.users').find(selector, options).toArray(
-    function(err, items) {
-      if(callback) callback(err, items);
-  });
+  if(queryOptions.nolimit) {
+    delete options.limit;
+  }
+  var col = mongo.collection('edms.users').find(selector, options);
+  if(options.getAsCursor) {
+    if(callback) callback(null, col);
+  } else {
+    col.toArray(
+      function(err, items) {
+        if(callback) callback(err, items);
+    });
+  }
 }
 
 /**
@@ -216,13 +224,21 @@ exports.auditInsert = function(username, comments, callback) {
   });
 }
 
-exports.auditFindAll = function(page, callback) {
-  var skip = page ? (page - 1) * LIMIT : 0;
+exports.auditFindAll = function(queryOptions, callback) {
+  var skip = queryOptions.page ? (queryOptions.page - 1) * LIMIT : 0;
   var options = {'limit':LIMIT, 'skip':skip, 'sort':[['timestamp', 'descending']]};
-  mongo.collection('edms.audits').find({}, options).toArray(
-    function(err, items) {
-      if(callback) callback(err, items);
-  });
+  if(queryOptions.nolimit) {
+    delete options.limit;
+  }
+  var col = mongo.collection('edms.audits').find({}, options);
+  if(queryOptions.getAsCursor) {
+    if(callback) callback(null, col);
+  } else {
+    col.toArray(
+      function(err, items) {
+        if(callback) callback(err, items);
+    });
+  }
 }
 
 exports.resetData = function(callback) {
