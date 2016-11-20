@@ -43,7 +43,7 @@ exports.putEmployee = function(req, res) {
         if (err) {
           res.status(500).send(err);
         } else {
-          res.send(item);
+          res.status(201).send(item);
         }
       });
     }
@@ -320,7 +320,7 @@ exports.doUpload = function(req, res) {
       fs.unlink(filename, function(errRemove){
         if(errRemove) {console.log("cant remove uploaded file: " + errRemove)};
         req.flash('info', 'Successfully started processing file in background. Check audit log for results');
-        res.redirect('/upload');
+        res.status(202).redirect('/upload');
       });
     }
     req.files.input.mv(filename, function(err) {

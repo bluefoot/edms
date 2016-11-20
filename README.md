@@ -22,6 +22,10 @@ The REST resources are:
 | POST          | /api/employee/:username   | See [here](#post-api-employee-username)    |
 | DELETE        | /api/employee/:username   | See [here](#delete-api-employee-username)  |
 
+All requests will return HTTP 200 or 201 if successful. Some will return success:true in
+the JSON response. If a status different than HTTP 200 is returned, means an error
+happened. An error message will be returned as a hint to the problem.
+
 ***
 
 ### POST /api/authenticate
@@ -84,7 +88,7 @@ Not required.
 - employee[email]: the email (must be unique)
 - employee[password]: the password
 
-all parameters are required
+All parameters are required
 
 #### Return JSON
 

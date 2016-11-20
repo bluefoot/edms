@@ -18,9 +18,9 @@ $(document).ready(function(){
         window.location = "/login";
       },
       error: function(err) {
-      alert("Error: " + err.responseText);
-      $('#submitloading').remove();
-      $('#submitbutton').removeAttr('disabled');
+        alert("Error: " + err.responseText);
+        $('#submitloading').remove();
+        $('#submitbutton').removeAttr('disabled');
       }
     });
   });
