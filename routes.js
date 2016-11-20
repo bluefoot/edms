@@ -312,34 +312,55 @@ exports.upload = function(req, res) {
 exports.doUpload = function(req, res) {
   if(req.session.user && req.session.user.username=='admin') {
     if (!req.files || !req.files.input) {
-      res.status(400).send('No files were uploaded.');
-      return;
+      return res.status(400).send('No files were uploaded.');
     }
-    var csv = req.files.input;
-    var filename = 'edmsupload-' + require("randomstring").generate() + '.csv';
-    csv.mv(filename, function(err) {
+    var filename = 'edmsupload-' + require("randomstring").generate() + req.files.input.name;
+    var finalize = function() {
+      // function to be called at the end. remove temp file and redirect user back to page
+      fs.unlink(filename, function(errRemove){
+        if(errRemove) {console.log("cant remove uploaded file: " + errRemove)};
+        req.flash('info', 'Successfully started processing file in background. Check audit log for results');
+        res.redirect('/upload');
+      });
+    }
+    req.files.input.mv(filename, function(err) {
       if (err) {
         res.status(500).send("Could not upload file: " + err);
       } else {
-        var Converter=require("csvtojson").Converter;
-        var csvConverter=new Converter({constructResult:false,trim:true});
-        var linesFound = 0;
-        csvConverter.on("record_parsed", function(line) {
-          linesFound++;
-          db.userInsert(line, req.session.user.username, function(err, item){
-            if(err) {
-              console.log('Could not bulk insert user ' + line.username + ': ' + err);
-            }
+        if(filename.endsWith('.xls') || filename.endsWith('.xlsx')) {
+          // upload Excel
+          var xlsx = require('xlsx');
+          var workbook = xlsx.readFile(filename);
+          // converts the first sheet of the file to a employee list (the first 
+          // row of the sheet must be the header, containing valid field names: 
+          // username,firstname,lastname,email,password
+          var jsonSheet = xlsx.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+          jsonSheet.forEach(function(line){
+            db.userInsert(line, req.session.user.username, function(err, item){
+              if(err) {
+                console.log('Could not bulk insert user ' + line.username + ': ' + err);
+              }
+            });
           });
-        });
-        csvConverter.on("end_parsed", function(results) { //results will be empty because I set constructResult:false
-          fs.unlink(filename, function(errRemove){
-            if(err) {console.log("cant remove uploaded CSV file: " + errRemove)};
-            req.flash('info', 'Successfully started processing ' + linesFound + ' records in background');
-            res.redirect('/upload');
+          finalize();
+        } else {
+          // upload CSV
+          var Converter=require("csvtojson").Converter;
+          var csvConverter=new Converter({constructResult:false,trim:true});
+          csvConverter.on("record_parsed", function(line) {
+            // for each line parsed, insert
+            db.userInsert(line, req.session.user.username, function(err, item){
+              if(err) {
+                console.log('Could not bulk insert user ' + line.username + ': ' + err);
+              }
+            });
           });
-        });
-        fs.createReadStream(filename).pipe(csvConverter);
+          csvConverter.on("end_parsed", function(results) { 
+            // results variable will be empty because I set constructResult:false
+            finalize();
+          });
+          fs.createReadStream(filename).pipe(csvConverter);
+        }
       }
     });
   } else {

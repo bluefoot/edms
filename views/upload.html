@@ -12,13 +12,13 @@ $(document).ready(function(){
 {% endblock %}
 
 {% block content %}
-  <p>Use this page to upload a Comma Separated Values (CSV) file containing users to be inserted.<br />
-  CSV file must have 5 columns, in any order: username, first name, last name, email, password.<br />
-  First row must be the header which contains column names. </p>
+  <p>Use this page to upload a Comma Separated Values (CSV) file or Microsoft Excel (XLS, XLSX) file containing users to be inserted.<br />
+  CSV file must have 5 columns, in any order: username, firstname, lastname, email, password. First row must be the header which contains column names.<br />
+  Excel files must contain data in the first sheet, where the first row (A) is the header with column names </p>
   <form id="upload" method="post" action="/upload" encType="multipart/form-data">
     <p>
       Upload file: <br />
-      <input type="file" id="input" name="input" accept=".csv,text/csv" />
+      <input type="file" id="input" name="input" accept=".csv,text/csv,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
     </p>
     <p>
       <input id="submitbutton" type="submit" value="Upload"/>
