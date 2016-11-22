@@ -1,5 +1,12 @@
 /*eslint-env node */
 
+//TODO: remove default interface use custom css
+//TODO: optimize database.js with things like createandfind, auto create if not found, update and find, etc
+//TODO: see if mongoimport is less ugly than using csv-parse and xlsx modules
+//TODO: automatically check if user has session or if auth headers were sent, 
+//      instead of checking on every method. BUT still must have a way for any
+//      route to not require authentication
+
 //------------------------------------------------------------------------------
 // gewtonj-edms (Employee Data Management System by gewtonj@br.ibm.com)
 //------------------------------------------------------------------------------
@@ -13,10 +20,7 @@ var session = require('express-session');
 var cookieParser = require('cookie-parser');
 var flash = require('express-flash');
 var fileUpload = require('express-fileupload');
-var fs = require('fs');
-var parse = require('csv-parse');
 var routes = require('./routes');
-var db = require('./database.js');
 var cfenv = require('cfenv');
 
 // create a new express server
@@ -51,60 +55,7 @@ app.use(fileUpload());
 // serve the files out of ./public as our main files
 app.use(express.static(__dirname + '/public'));
 
-// Routes
-// REST verbs to manipulate employee resource (see README.md): ================
-// GET    /api/employee/:username       get employee
-// PUT    /api/employee/:username       put employee (employee data should be added in the request body)
-// POST   /api/employee/:username       post employee (employee data should be added in the request body)
-// DELETE /api/employee/:username       delete employee
-// POST   /api/authenticate             since it requires authentication, this 
-//                                      method returns a JWT token to be used 
-//                                      while calling other api methods
-//
-// Web interface routes: ======================================================
-// GET    /                             view start page
-// GET    /register                     new registration
-// GET    /login                        view login page
-// POST   /login                        login user
-// GET    /logout                       logout user, redirect to start page
-// GET    /dashboard                    view dashboard
-// GET    /profile                      view my profile details
-// GET    /profile/edit                 form to edit logged user's profile details
-// GET    /profile/edit/:username       form to edit some username profile details
-// GET    /profile/editpwd              form to edit logged user's password
-// GET    /audit                        view audit page
-// GET    /upload                       view page to upload CSV
-// POST   /upload                       submit CSV
-app.all('*', function(req, res, next) {
-  // Check if mongodb finished connecting and loading bootstrap data
-  if(!db.isDbReady()) {
-    res.status(500).send('Application still loading, try again');
-  } else {
-    // Set session user (if available) to a global variable to be used by views
-    res.locals.user = req.session.user || null;
-    // Continue in the chain
-    next();
-  }
-});
-app.get('/api/employee/:username', routes.getEmployee);
-app.put('/api/employee/:username', routes.putEmployee);
-app.post('/api/employee/:username', routes.postEmployee);
-app.delete('/api/employee/:username', routes.deleteEmployee);
-app.post('/api/authenticate', routes.apiAuth);
-
-app.get('/', routes.index);
-app.get('/register', routes.registration);
-app.get('/login', routes.login);
-app.post('/login', routes.dologin);
-app.get('/logout', routes.logout);
-app.get('/dashboard', routes.dashboard);
-app.get('/profile', routes.userProfile);
-app.get('/profile/edit/:username?', routes.userProfileEdit);
-app.get('/profile/editpwd', routes.userProfileEditPwd);
-app.get('/audit', routes.audit);
-app.get('/auditdownload', routes.auditdownload);
-app.get('/upload', routes.upload);
-app.post('/upload', routes.doUpload);
+app.use(routes);
 
 //get the app environment from Cloud Foundry
 var appEnv = cfenv.getAppEnv();

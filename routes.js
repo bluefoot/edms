@@ -3,9 +3,70 @@ var edmsutils = require('./edmsutils.js');
 var db = require('./database.js');
 var fs = require('fs');
 var jwt = require('jwt-simple');
+var express = require('express')
+var router = express.Router();
 const jwtsecret = 'LOr4Kspiv2uJRarrU8JsNSRVT4UgGj8KEKA8J14QO3HZbP6klN';
 
-exports.getEmployee = function(req, res) {
+//Routes (see README.md for more details)
+//REST verbs to manipulate employee resource (see README.md): ================
+//GET    /api/employee/:username       get employee
+//PUT    /api/employee/:username       put employee (employee data should be added in the request body)
+//POST   /api/employee/:username       post employee (employee data should be added in the request body)
+//DELETE /api/employee/:username       delete employee
+//POST   /api/authenticate             since api methods (except employee insertion)
+//                                     requires authentication, this 
+//                                     method returns a JWT token to be used 
+//                                     while calling other api methods
+//
+//Web interface routes: ======================================================
+//GET    /                             view start page
+//GET    /register                     new registration
+//GET    /login                        view login page
+//POST   /login                        login user
+//GET    /logout                       logout user, redirect to start page
+//GET    /dashboard                    view dashboard
+//GET    /profile                      view my profile details
+//GET    /profile/edit                 form to edit logged user's profile details
+//GET    /profile/edit/:username       form to edit some username profile details
+//GET    /profile/editpwd              form to edit logged user's password
+//GET    /audit                        view audit page
+//GET    /auditdownload                download CSV with audit records
+//GET    /upload                       view page to upload CSV with employee records
+//POST   /upload                       submit CSV or XLS with employee records
+
+router.all('*', function(req, res, next) {
+  // Check if mongodb finished connecting and loading bootstrap data
+  if(!db.isDbReady()) {
+    res.status(500).send('Application still loading, try again');
+  } else {
+    // Set session user (if available) to a global variable to be used by views
+    res.locals.user = req.session.user || null;
+    // Continue in the chain
+    next();
+  }
+});
+router.get('/api/employee/:username', getEmployee);
+router.put('/api/employee/:username', putEmployee);
+router.post('/api/employee/:username', postEmployee);
+router.delete('/api/employee/:username', deleteEmployee);
+router.post('/api/authenticate', apiAuth);
+
+router.get('/', index);
+router.get('/register', registration);
+router.get('/login', login);
+router.post('/login', dologin);
+router.get('/logout', logout);
+router.get('/dashboard', dashboard);
+router.get('/profile', userProfile);
+router.get('/profile/edit/:username?', userProfileEdit);
+router.get('/profile/editpwd', userProfileEditPwd);
+router.get('/audit', audit);
+router.get('/auditdownload', auditdownload);
+router.get('/upload', upload);
+router.post('/upload', doUpload);
+
+
+function getEmployee(req, res) {
   var authenticatedUsername;
   if(req.session.user) {
     // if coming from webpage, then session is expected
@@ -29,7 +90,7 @@ exports.getEmployee = function(req, res) {
   }
 };
 
-exports.putEmployee = function(req, res) {
+function putEmployee(req, res) {
   // this method does not require authentication (per requirements)
   // any user can register itself
   var employee = req.body.employee;
@@ -50,7 +111,7 @@ exports.putEmployee = function(req, res) {
   });
 };
 
-exports.postEmployee = function(req, res) {
+function postEmployee(req, res) {
   var authenticatedUsername;
   if(req.session.user) {
     // if coming from webpage, then session is expected
@@ -95,7 +156,7 @@ exports.postEmployee = function(req, res) {
   }
 };
 
-exports.deleteEmployee = function(req, res){
+function deleteEmployee(req, res){
   var authenticatedUsername;
   if(req.session.user) {
     // if coming from webpage, then session is expected
@@ -123,7 +184,7 @@ exports.deleteEmployee = function(req, res){
   }
 };
 
-exports.apiAuth = function(req, res) {
+function apiAuth(req, res) {
   //FIXME is this really necessary? all methods could just check for user/pwd from headers and that's it
   var credentials = getUserAndPasswordFromHeaders();
   credentials.password = edmsutils.hashpwd(credentials.password);
@@ -139,7 +200,7 @@ exports.apiAuth = function(req, res) {
   });
 }
 
-exports.index = function(req, res) {
+function index(req, res) {
   if(req.session.user) {
     res.redirect('/dashboard');
   } else {
@@ -147,15 +208,15 @@ exports.index = function(req, res) {
   }
 };
 
-exports.registration = function(req, res) {
+function registration(req, res) {
   res.render('registration', {title : 'New registration page'});
 };
 
-exports.login = function(req, res) {
+function login(req, res) {
   res.render('login', {title : 'Login'});
 };
 
-exports.dologin = function(req, res) {
+function dologin(req, res) {
   req.body.password = edmsutils.hashpwd(req.body.password);
   db.userFind({'username':req.body.username, 'password':req.body.password}, function(err, item) {
     if(item) {
@@ -170,13 +231,13 @@ exports.dologin = function(req, res) {
   });
 };
 
-exports.logout = function(req, res) {
+function logout(req, res) {
   req.session.destroy();
   res.redirect('/');
 };
 
 
-exports.dashboard = function(req, res) {
+function dashboard(req, res) {
   if(req.session.user) {
     if(req.query.page && req.query.page < 1) {
       res.redirect('/dashboard');
@@ -210,7 +271,7 @@ exports.dashboard = function(req, res) {
   }
 };
 
-exports.userProfile = function(req, res) {
+function userProfile(req, res) {
   if(req.session.user) {
     res.render('profile', {title : 'View profile', 'theuser' : req.session.user});
   } else {
@@ -218,7 +279,7 @@ exports.userProfile = function(req, res) {
   }
 };
 
-exports.userProfileEdit = function(req, res) {
+function userProfileEdit(req, res) {
   if(req.session.user) {
     renderpage = function(theuser){
       res.render('profile', {title : 'Edit profile', 'edit' : true, 'theuser' : theuser});
@@ -244,7 +305,7 @@ exports.userProfileEdit = function(req, res) {
   }
 };
 
-exports.userProfileEditPwd = function(req, res) {
+function userProfileEditPwd(req, res) {
   if(req.session.user) {
     res.render('profile_edit_pwd', {title : 'Change my password'});
   } else {
@@ -252,7 +313,7 @@ exports.userProfileEditPwd = function(req, res) {
   }
 };
 
-exports.audit = function(req, res) {
+function audit(req, res) {
   if(req.session.user && req.session.user.username=='admin') {
     if(req.query.page && req.query.page < 1) {
       res.redirect('/audit');
@@ -276,7 +337,7 @@ exports.audit = function(req, res) {
   }
 }
 
-exports.auditdownload = function(req, res) {
+function auditdownload(req, res) {
   if(req.session.user && req.session.user.username=='admin') {
     db.auditFindAll({nolimit:true, getAsCursor:true}, function(err, cursor){
       if(!err) {
@@ -301,7 +362,7 @@ exports.auditdownload = function(req, res) {
   }
 }
 
-exports.upload = function(req, res) {
+function upload(req, res) {
   if(req.session.user && req.session.user.username=='admin') {
     res.render('upload', {title : 'Employee record upload'});
   } else {
@@ -309,7 +370,7 @@ exports.upload = function(req, res) {
   }
 };
 
-exports.doUpload = function(req, res) {
+function doUpload(req, res) {
   if(req.session.user && req.session.user.username=='admin') {
     if (!req.files || !req.files.input) {
       return res.status(400).send('No files were uploaded.');
@@ -409,3 +470,5 @@ function getUserAndPasswordFromHeaders(headers) {
   }
   return null;
 }
+
+module.exports = router;
