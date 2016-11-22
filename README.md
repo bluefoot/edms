@@ -6,15 +6,19 @@ This project was written by gewtonj@br.ibm.com as part of the Case Study 1 for t
 Technologies: Node.js, MongoDB, Express. Please refer to https://lpb.w3bmix.ibm.com/?id=85257E85001C3E31
 for more info on the requirements.
 
+The application can be accessed from the url https://gewtonj-edms.mybluemix.net/.
+
 ## Run
 
-    node app.js
+- Create an environment variable `VCAP_SERVICES`, with the following JSON
+contents: `{"compose-for-mongodb": [{"credentials": {"uri": "mongodb://YOUR_MONGODB_URL"}}]}`
+- Execute `node app.js` then open `http://localhost:PORT/`, where 
+`PORT` will be shown in the output of the command.
 
 ## Usage
 
-The application, currently hosted at https://gewtonj-edms.mybluemix.net/, is 
-composed by a web interface which can be accessible via browser, and a REST
-API to be used by other applications or clients.
+The application is composed by a web interface which can be accessible via 
+browser, and a REST API to be used by other applications or clients.
 
 The REST resources are:
 

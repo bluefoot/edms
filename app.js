@@ -9,7 +9,6 @@ var path = require('path');
 var swig = require('swig');
 var bodyParser = require('body-parser');
 var validator = require('validator');
-var edmsutils = require('./edmsutils.js');
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
 var flash = require('express-flash');
